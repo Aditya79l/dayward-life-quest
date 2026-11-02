@@ -18,16 +18,24 @@ Dayward turns a daily routine into a calm, game-like quest log. This first step 
 - **Consistency** celebrates returning to the routine. A missed day does not remove XP or punish the user.
 - **Personalization** should let people choose life areas, effort, and time estimates so the app fits their real routine.
 
-## Stack plan
+## Stack
 
-The current files are a no-dependency UI prototype so we can settle the daily flow before introducing an install/build pipeline. `.github/workflows/deploy-pages.yml` automatically publishes changes to GitHub Pages; `vercel.json` and `netlify.toml` keep the same static build compatible with Vercel or Netlify. This prototype does not have a hosted API or shared database; its data stays in the browser that created it.
+The root files remain the public GitHub Pages preview. The full-stack app is in `web/`: Next.js App Router, React, TypeScript, Tailwind CSS v4, Auth.js, bcryptjs, and MongoDB Atlas. It includes email/password login, signup, Google/Discord OAuth, and a dated quest log with XP and add/delete/toggle actions.
 
-For the current static version, **GitHub Pages** is the simplest host. It serves the existing HTML, CSS, and JavaScript from a GitHub repository, but it cannot run the server-side API and account features a full product needs. For that version, use **Next.js App Router + TypeScript + Tailwind CSS** with **Supabase (Postgres + Auth)**, hosted on Vercel. Netlify can host the same Next.js app as an alternative. Start local-first, then add sign-in and server persistence once the quest model and routine are settled.
+GitHub Pages continues to host the static preview. It cannot run the account/API routes, so deploy the `web/` project on Vercel with the project root set to `web`. Netlify can host the same Next.js app as an alternative.
+
+## Configure the full-stack app
+
+1. Copy `web/.env.example` to `web/.env.local` and fill in MongoDB Atlas, `AUTH_SECRET`, Google OAuth, and Discord OAuth values. Use an Atlas database user limited to this app's database.
+2. Set provider callback URLs to `https://<your-domain>/api/auth/callback/google` and `/api/auth/callback/discord` (or localhost during development).
+3. From `web/`, run `npm install` and `npm run dev`.
+4. In Vercel, import the repository, set Root Directory to `web`, and add the same environment variables in Project Settings.
+
+Passwords are checked server-side and stored only as bcrypt hashes. Each account starts with 0 XP. OAuth and database-backed login require real provider credentials and a MongoDB URI; these are intentionally not committed.
 
 ## Suggested next steps
 
-1. Choose the life areas and recurring routine that should appear in the default quest board.
-2. Convert this validated interface to the Next.js stack and add quest templates, recurrence, and a weekly history.
-3. Upgrade to Next.js and connect Supabase for account-based sync; use Vercel as the primary host and Netlify as an alternate if preferred.
-4. Add optional reminders and expand rank rewards with skill trees, achievements, and cosmetic unlocks, keeping rest and missed days guilt-free.
+1. Add email verification and password reset before opening signups publicly.
+2. Add calendar history and account timezone settings.
+3. Expand rank rewards with achievements and cosmetic unlocks, keeping rest and missed days guilt-free.
 
