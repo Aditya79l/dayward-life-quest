@@ -7,8 +7,8 @@ const legacyQuestIds = new Set(["m1", "m2", "m3", "m4", "s1", "s2"]);
 const makeDefaults = () => ({
   xp: 0,
   quests: [
-    { id: "daily-steps", title: "👟 Daily 10K Steps", category: "MOVE & EXPLORE", xp: 75, side: false },
-    { id: "water-3l", title: "💧 Drink 3L Water", category: "FUEL YOUR BODY", xp: 50, side: false },
+    { id: "daily-steps", title: "👟 Daily Steps", category: "MOVE & EXPLORE", xp: 75, side: false },
+    { id: "water-3l", title: "💧 Drink Water", category: "FUEL YOUR BODY", xp: 50, side: false },
     { id: "dsa-practice", title: "🧩 DSA Practice", category: "SHARPEN YOUR MIND", xp: 100, side: false },
     { id: "gym-running", title: "🏋️ Gym / Running", category: "BUILD YOUR STRENGTH", xp: 100, side: false },
     { id: "ai-learning", title: "🤖 AI Learning", category: "FUTURE SKILLS", xp: 75, side: false },
@@ -17,6 +17,7 @@ const makeDefaults = () => ({
     { id: "book-reading", title: "📚 Read a Book", category: "LIFELONG LEARNING", xp: 40, side: true },
     { id: "football", title: "⚽ Play Football", category: "PLAY & RECOVER", xp: 40, side: true },
   ],
+  targets: { steps: 10000, waterMl: 3000 },
   days: {},
   dayXp: {},
 });
@@ -29,7 +30,7 @@ function loadState() {
       const savedQuests = saved.quests.filter(quest => !legacyQuestIds.has(quest.id));
       const seededQuests = defaults.quests;
       const customQuests = savedQuests.filter(quest => !defaultIds.has(quest.id));
-      return { ...defaults, ...saved, quests: [...seededQuests, ...customQuests] };
+      return { ...defaults, ...saved, targets: { ...defaults.targets, ...saved.targets }, quests: [...seededQuests, ...customQuests] };
     }
   } catch { /* start fresh if local data is unavailable */ }
   return makeDefaults();
@@ -46,6 +47,8 @@ const newSide = ref(false);
 const newXp = ref(50);
 const toast = ref("");
 const introVisible = ref(true);
+const stepTargetDraft = ref(state.targets.steps);
+const waterTargetDraft = ref(state.targets.waterMl);
 let toastTimeout;
 let midnightCheck;
 let introTimeout;
@@ -88,6 +91,13 @@ const lastSeven = computed(() => Array.from({ length: 7 }, (_, index) => {
 }));
 const weeklyXp = computed(() => lastSeven.value.reduce((sum, day) => sum + day.xp, 0));
 const weeklyDone = computed(() => lastSeven.value.reduce((sum, day) => sum + day.done, 0));
+const weeklyCompletions = computed(() => {
+  const questNames = new Map(state.quests.map(quest => [quest.id, quest.title]));
+  return lastSeven.value.flatMap(day => Object.entries(state.days[day.key] || {})
+    .filter(([, complete]) => complete)
+    .map(([id]) => ({ id: `${day.key}-${id}`, title: questNames.get(id) || "Completed quest", key: day.key, short: day.short })))
+    .reverse().slice(0, 8);
+});
 const weeklyPossible = computed(() => Math.max(1, mainQuests.value.length * 7));
 const weeklyRate = computed(() => Math.min(100, Math.round(weeklyDone.value / weeklyPossible.value * 100)));
 const totalCompleted = computed(() => Object.values(state.days).reduce((total, day) => total + Object.values(day).filter(Boolean).length, 0));
@@ -107,6 +117,35 @@ const maxBar = computed(() => Math.max(50, ...lastSeven.value.map(day => day.xp)
 
 function formatDate(key, options = {}) {
   return new Date(`${key}T12:00:00`).toLocaleDateString(undefined, options);
+}
+function formatLiters(ml) {
+  return Number((ml / 1000).toFixed(2)).toString();
+}
+function saveTarget(target) {
+  if (target === "steps") {
+    state.targets.steps = Math.max(1000, Math.min(50000, Math.round((Number(stepTargetDraft.value) || state.targets.steps) / 500) * 500));
+    stepTargetDraft.value = state.targets.steps;
+  } else {
+    state.targets.waterMl = Math.max(500, Math.min(10000, Math.round((Number(waterTargetDraft.value) || state.targets.waterMl) / 250) * 250));
+    waterTargetDraft.value = state.targets.waterMl;
+  }
+  notify("Daily target updated.");
+}
+function exportBackup() {
+  const backup = { app: "Daynova", version: 1, exportedAt: new Date().toISOString(), data: JSON.parse(JSON.stringify(state)) };
+  const file = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(file);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `daynova-backup-${todayKey()}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+  notify("Your Daynova backup is ready.");
+}
+function questTitle(quest) {
+  if (quest.id === "daily-steps") return `👟 Daily ${state.targets.steps.toLocaleString()} Steps`;
+  if (quest.id === "water-3l") return `💧 Drink ${formatLiters(state.targets.waterMl)}L Water`;
+  return quest.title;
 }
 function selectDay(key) {
   if (key && key <= todayKey()) selectedDate.value = key;
@@ -194,6 +233,14 @@ onUnmounted(() => { clearInterval(midnightCheck); clearTimeout(toastTimeout); cl
         <div class="orbit-art" aria-hidden="true"><div class="breath-ring ring-one"></div><div class="breath-ring ring-two"></div><div class="orbit orbit-outer"></div><div class="orbit orbit-inner"></div><div class="planet"></div><div class="katana-scene"><div class="katana"><i class="blade"></i><i class="guard"></i><i class="handle"></i><i class="pommel"></i></div></div><span class="orbit-star one">✦</span><span class="orbit-star two">✧</span><span class="orbit-star three">·</span><span class="planet-label">BREATH OF THE COSMOS</span></div>
       </section>
 
+      <section v-if="activeView === 'today'" class="glass-panel target-panel">
+        <div class="target-heading"><div><span class="card-label">MAKE IT FIT YOUR DAY</span><h2>Daily targets</h2></div><span class="target-orbit">✦</span></div>
+        <div class="target-fields">
+          <label class="target-field"><span>👟 Steps <small>1,000–50,000</small></span><div><input v-model.number="stepTargetDraft" type="number" min="1000" max="50000" step="500" inputmode="numeric" aria-label="Daily step target" @change="saveTarget('steps')" /><b>steps</b></div></label>
+          <label class="target-field"><span>💧 Water <small>0.5–10 liters</small></span><div><input v-model.number="waterTargetDraft" type="number" min="500" max="10000" step="250" inputmode="decimal" aria-label="Daily water target in milliliters" @change="saveTarget('water')" /><b>mL</b></div></label>
+        </div>
+      </section>
+
       <section v-if="activeView === 'today'" class="content-grid">
         <div class="primary-column">
           <div class="section-heading"><div><div class="heading-line"><h2>{{ selectedDate === todayKey() ? 'Today’s quests' : 'Quest log' }}</h2><span class="count-chip">{{ completedMain }} / {{ mainQuests.length }} MAIN</span></div><p>Small steps make the biggest stories.</p></div><button class="subtle-button" @click="activeView = 'analytics'">View analytics <span>↗</span></button></div>
@@ -201,7 +248,7 @@ onUnmounted(() => { clearInterval(midnightCheck); clearTimeout(toastTimeout); cl
           <div class="quest-list">
             <article v-for="quest in mainQuests" :key="quest.id" :class="['quest-card', { completed: completions[quest.id] }]">
               <button class="quest-check" :disabled="selectedDate > todayKey()" :aria-label="completions[quest.id] ? 'Mark incomplete' : 'Complete quest'" @click="toggleQuest(quest)">{{ completions[quest.id] ? '✓' : '' }}</button>
-              <div class="quest-text"><span class="quest-category">{{ quest.category }}</span><strong>{{ quest.title }}</strong><small>◷ &nbsp;Whenever works for you</small></div>
+              <div class="quest-text"><span class="quest-category">{{ quest.category }}</span><strong>{{ questTitle(quest) }}</strong><small>◷ &nbsp;Whenever works for you</small></div>
               <span class="quest-reward">✦ &nbsp;{{ quest.xp }} XP</span><button class="delete-button" aria-label="Delete quest" title="Delete quest" @click="deleteQuest(quest)">×</button>
             </article>
             <div v-if="!mainQuests.length" class="empty-state">Your main quest list is clear. Add a small goal when you’re ready.</div>
@@ -225,7 +272,8 @@ onUnmounted(() => { clearInterval(midnightCheck); clearTimeout(toastTimeout); cl
       </section>
 
       <section v-else class="analytics-view">
-        <div class="section-heading"><div><div class="heading-line"><h2>Your analytics</h2><span class="count-chip">LAST 7 DAYS</span></div><p>A clear view of your consistency and progress.</p></div><button class="subtle-button" @click="activeView = 'today'">← Back to today</button></div>
+        <div class="section-heading"><div><div class="heading-line"><h2>Your analytics</h2><span class="count-chip">LAST 7 DAYS</span></div><p>A clear view of your consistency and progress.</p></div><div class="analytics-actions"><button class="subtle-button export-button" @click="exportBackup">↓ Export backup</button><button class="subtle-button" @click="activeView = 'today'">← Back to today</button></div></div>
+        <section class="glass-panel weekly-recap"><div class="recap-heading"><div><span class="card-label">YOUR LAST SEVEN DAYS</span><h3>Weekly recap</h3></div><span class="recap-spark">✧</span></div><div class="recap-stats"><div><small>QUESTS COMPLETED</small><strong>{{ weeklyDone }}</strong><span>this week</span></div><div><small>XP EARNED</small><strong>{{ weeklyXp }}</strong><span>this week</span></div><div><small>STREAKS</small><strong>{{ currentStreak }} <i>current</i></strong><span>{{ bestStreak }} day personal best</span></div></div><div class="weekly-wins"><div class="wins-label">RECENT QUEST WINS</div><div v-if="weeklyCompletions.length" class="wins-list"><article v-for="win in weeklyCompletions" :key="win.id"><span>✦</span><strong>{{ win.title }}</strong><small>{{ win.short }} · {{ formatDate(win.key, { month: 'short', day: 'numeric' }) }}</small></article></div><p v-else class="wins-empty">Your wins from this week will show up here.</p></div></section>
         <div class="analytics-cards"><article class="glass-panel metric-card"><span class="metric-icon cyan">✦</span><small>TOTAL XP</small><strong>{{ state.xp }}</strong><span class="metric-note">Adventure rank progress</span></article><article class="glass-panel metric-card"><span class="metric-icon blue">♨</span><small>CURRENT STREAK</small><strong>{{ currentStreak }} <i>days</i></strong><span class="metric-note">Best streak: {{ bestStreak }} days</span></article><article class="glass-panel metric-card"><span class="metric-icon violet">◈</span><small>QUESTS COMPLETED</small><strong>{{ totalCompleted }}</strong><span class="metric-note">Across {{ activeDays }} active days</span></article><article class="glass-panel metric-card"><span class="metric-icon teal">⌁</span><small>WEEKLY COMPLETION</small><strong>{{ weeklyRate }}<i>%</i></strong><span class="metric-note">{{ weeklyDone }} wins this week</span></article></div>
         <div class="analytics-grid"><section class="glass-panel chart-panel"><div class="card-top"><div><span class="card-label">YOUR RHYTHM</span><h3>XP earned this week</h3></div><span class="chart-total">{{ weeklyXp }} <small>XP</small></span></div><div class="chart"><div v-for="day in lastSeven" :key="day.key" class="chart-column"><span class="bar-value">{{ day.xp || '' }}</span><div class="bar-rail"><i :style="{ height: `${Math.max(day.xp ? 9 : 2, day.xp / maxBar * 100)}%` }"></i></div><small>{{ day.short }}</small></div></div></section>
           <section class="glass-panel insight-panel"><span class="card-label">A NOTE FOR YOU</span><div class="insight-orb">✧</div><h3>{{ currentStreak ? 'You’re finding your rhythm.' : 'Your next streak starts today.' }}</h3><p>{{ totalCompleted ? `You’ve collected ${totalCompleted} small wins so far. Keep the pace that feels right.` : 'Every adventure starts with a first step. Pick one small quest and begin.' }}</p><button class="text-button" @click="activeView = 'today'">See today’s quests ↗</button></section></div>
