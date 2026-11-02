@@ -198,3 +198,12 @@ body{background:radial-gradient(ellipse at 78% 8%,#12152332,transparent 35%),rad
 .intro-rocket .rocket-hull{box-shadow:inset 0 0 6px #fff,0 0 7px #73e8ff91}
 .app-frame,.app-frame *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M4 2 26 21 17 22 13 30z' fill='%23030306' stroke='%23f5f7ff' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='m24 3 1.5 3.5L29 8l-3.5 1.5L24 13l-1.5-3.5L19 8l3.5-1.5z' fill='%237de8ff' stroke='%23030306' stroke-width='.8'/%3E%3Cpath d='m9 18 .8 1.8 1.8.7-1.8.8L9 25l-.8-1.7-1.7-.8 1.7-.7z' fill='%23c9b8ff'/%3E%3C/svg%3E") 4 2,auto}
 
+/* Milky Way dust band and independently twinkling star layers. */
+.intro-sky:after{content:"";position:absolute;z-index:0;left:-27%;top:35%;width:154%;height:40%;transform:rotate(-24deg);border-radius:50%;opacity:.56;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,#cbd3ff1b 0,transparent 62%),linear-gradient(180deg,transparent 0%,#bac5e20c 23%,#e4e9ff20 46%,#c9d3f217 54%,#bac5e209 78%,transparent 100%),radial-gradient(ellipse at 52% 48%,#c8d6ff24 0,transparent 34%);filter:blur(2px);mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent)}
+.galaxy-stars{animation:star-drift 35s linear infinite}
+.galaxy-stars:before,.galaxy-stars:after{content:"";position:absolute;inset:0;pointer-events:none;background-repeat:repeat;background-size:179px 137px,239px 193px,311px 251px}
+.galaxy-stars:before{background-image:radial-gradient(circle,#f8fbff 0 1px,transparent 1.7px),radial-gradient(circle,#b8d2ff 0 1px,transparent 1.8px),radial-gradient(circle,#e7d8ff 0 1.3px,transparent 2px);background-position:19px 39px,82px 17px,117px 105px;animation:star-twinkle-soft 3.4s ease-in-out infinite alternate}
+.galaxy-stars:after{background-image:radial-gradient(circle,#fff 0 1.4px,transparent 2.2px),radial-gradient(circle,#a7eaff 0 1.2px,transparent 2px);background-size:263px 219px,337px 277px;background-position:63px 93px,151px 26px;animation:star-twinkle-bright 4.7s ease-in-out -1.8s infinite alternate}
+@keyframes star-twinkle-soft{0%{opacity:.22}55%{opacity:.95}100%{opacity:.36}}
+@keyframes star-twinkle-bright{0%{opacity:.3;filter:brightness(.8)}45%{opacity:1;filter:brightness(1.8)}100%{opacity:.42;filter:brightness(1)}}
+
