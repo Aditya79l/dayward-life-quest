@@ -147,16 +147,16 @@ onUnmounted(() => { clearInterval(midnightCheck); clearTimeout(toastTimeout); cl
 
 <template>
   <div class="app-frame">
-    <Transition name="intro"><div v-if="introVisible" class="intro-screen" role="status" aria-label="Opening duel animation">
-      <div class="intro-sky"><i class="intro-moon"></i><i class="intro-cloud cloud-a"></i><i class="intro-cloud cloud-b"></i><i class="intro-grain"></i></div>
+    <Transition name="intro"><div v-if="introVisible" class="intro-screen" role="status" aria-label="Rocket orbiting through a galaxy">
+      <div class="intro-sky"><div class="galaxy-stars"></div><i class="galaxy-nebula nebula-blue"></i><i class="galaxy-nebula nebula-violet"></i><i class="galaxy-nebula nebula-rose"></i></div>
       <div class="intro-brand"><span>✳</span> DAYWARD</div>
-      <div class="duel-stage" aria-hidden="true">
-        <div class="duel-ring"></div><div class="duel-slash slash-blue"></div><div class="duel-slash slash-flame"></div>
-        <div class="duel-hunter hunter-blue"><i class="hunter-cloak"></i><i class="hunter-head"></i><i class="hunter-mask"></i><i class="hunter-body"></i><i class="hunter-arm"></i><i class="hunter-leg leg-front"></i><i class="hunter-leg leg-back"></i><i class="hunter-sword"><b></b></i></div>
-        <div class="duel-hunter hunter-flame"><i class="hunter-cloak"></i><i class="hunter-head"></i><i class="hunter-mask"></i><i class="hunter-body"></i><i class="hunter-arm"></i><i class="hunter-leg leg-front"></i><i class="hunter-leg leg-back"></i><i class="hunter-sword"><b></b></i></div>
-        <div class="duel-clash"><i></i><b></b><em></em></div>
+      <div class="galaxy-stage" aria-hidden="true">
+        <div class="galaxy-halo"></div><div class="star-orbit orbit-far"></div><div class="star-orbit orbit-near"></div>
+        <div class="planet planet-large"><i></i></div><div class="planet planet-small"></div><div class="planet planet-ember"></div>
+        <div class="moonlet"></div><div class="rocket-path"><div class="intro-rocket"><i class="rocket-nose"></i><i class="rocket-hull"></i><i class="rocket-window"></i><i class="rocket-fin fin-left"></i><i class="rocket-fin fin-right"></i><i class="rocket-flame"></i></div></div>
+        <i class="sparkle sparkle-a">✦</i><i class="sparkle sparkle-b">✧</i><i class="sparkle sparkle-c">·</i><i class="sparkle sparkle-d">✦</i>
       </div>
-      <div class="intro-caption"><span>AN ADVENTURE AWAKENS</span><strong>Every day begins with a battle.</strong><small>Preparing your next quest…</small></div>
+      <div class="intro-caption"><span>YOUR NEXT ADVENTURE AWAITS</span><strong>Make every day a new orbit.</strong><small>Preparing your next quest…</small></div>
       <button class="intro-skip" @click="introVisible = false">Skip intro <span>↗</span></button>
     </div></Transition>
     <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
