@@ -7,15 +7,15 @@ const legacyQuestIds = new Set(["m1", "m2", "m3", "m4", "s1", "s2"]);
 const makeDefaults = () => ({
   xp: 0,
   quests: [
-    { id: "daily-steps", title: "Daily 10K Steps", category: "MOVE & EXPLORE", xp: 75, side: false },
-    { id: "water-3l", title: "Drink 3L Water", category: "FUEL YOUR BODY", xp: 50, side: false },
-    { id: "dsa-practice", title: "DSA Practice", category: "SHARPEN YOUR MIND", xp: 100, side: false },
-    { id: "gym-running", title: "Gym / Running", category: "BUILD YOUR STRENGTH", xp: 100, side: false },
-    { id: "ai-learning", title: "AI Learning", category: "FUTURE SKILLS", xp: 75, side: false },
-    { id: "no-sugar", title: "No Sugar Today", category: "MINDFUL FUEL", xp: 40, side: true },
-    { id: "no-junk", title: "Skip Junk Food", category: "SMART CHOICES", xp: 40, side: true },
-    { id: "book-reading", title: "Read a Book", category: "LIFELONG LEARNING", xp: 40, side: true },
-    { id: "football", title: "Play Football", category: "PLAY & RECOVER", xp: 40, side: true },
+    { id: "daily-steps", title: "👟 Daily 10K Steps", category: "MOVE & EXPLORE", xp: 75, side: false },
+    { id: "water-3l", title: "💧 Drink 3L Water", category: "FUEL YOUR BODY", xp: 50, side: false },
+    { id: "dsa-practice", title: "🧩 DSA Practice", category: "SHARPEN YOUR MIND", xp: 100, side: false },
+    { id: "gym-running", title: "🏋️ Gym / Running", category: "BUILD YOUR STRENGTH", xp: 100, side: false },
+    { id: "ai-learning", title: "🤖 AI Learning", category: "FUTURE SKILLS", xp: 75, side: false },
+    { id: "no-sugar", title: "🍬 No Sugar Today", category: "MINDFUL FUEL", xp: 40, side: true },
+    { id: "no-junk", title: "🥗 Skip Junk Food", category: "SMART CHOICES", xp: 40, side: true },
+    { id: "book-reading", title: "📚 Read a Book", category: "LIFELONG LEARNING", xp: 40, side: true },
+    { id: "football", title: "⚽ Play Football", category: "PLAY & RECOVER", xp: 40, side: true },
   ],
   days: {},
   dayXp: {},
@@ -27,7 +27,7 @@ function loadState() {
       const defaults = makeDefaults();
       const defaultIds = new Set(defaults.quests.map(quest => quest.id));
       const savedQuests = saved.quests.filter(quest => !legacyQuestIds.has(quest.id));
-      const seededQuests = defaults.quests.map(template => savedQuests.find(quest => quest.id === template.id) ?? template);
+      const seededQuests = defaults.quests;
       const customQuests = savedQuests.filter(quest => !defaultIds.has(quest.id));
       return { ...defaults, ...saved, quests: [...seededQuests, ...customQuests] };
     }
