@@ -147,13 +147,13 @@ onUnmounted(() => { clearInterval(midnightCheck); clearTimeout(toastTimeout); cl
 
 <template>
   <div class="app-frame">
-    <Transition name="intro"><div v-if="introVisible" class="intro-screen" role="status" aria-label="Rocket orbiting through a galaxy">
+    <Transition name="intro"><div v-if="introVisible" class="intro-screen" role="status" aria-label="A twinkling Milky Way over a field of planets">
       <div class="intro-sky"><div class="galaxy-stars"></div><i class="galaxy-nebula nebula-blue"></i><i class="galaxy-nebula nebula-violet"></i><i class="galaxy-nebula nebula-rose"></i></div>
       <div class="intro-brand"><span>✳</span> DAYWARD</div>
       <div class="galaxy-stage" aria-hidden="true">
         <div class="galaxy-halo"></div><div class="star-orbit orbit-far"></div><div class="star-orbit orbit-near"></div>
         <div class="planet planet-large"><i></i></div><div class="planet planet-small"></div><div class="planet planet-ember"></div><div class="planet planet-indigo"></div><div class="planet planet-ice"></div>
-        <div class="moonlet"></div><div class="rocket-path"><div class="intro-rocket"><i class="rocket-nose"></i><i class="rocket-hull"></i><i class="rocket-window"></i><i class="rocket-fin fin-left"></i><i class="rocket-fin fin-right"></i><i class="rocket-flame"></i></div></div>
+        <div class="moonlet"></div>
         <i class="sparkle sparkle-a">✦</i><i class="sparkle sparkle-b">✧</i><i class="sparkle sparkle-c">·</i><i class="sparkle sparkle-d">✦</i>
       </div>
       <div class="intro-caption"><span>YOUR NEXT ADVENTURE AWAITS</span><strong>Make every day a new orbit.</strong><small>Preparing your next quest…</small></div>
