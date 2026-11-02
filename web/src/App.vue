@@ -65,6 +65,7 @@ let introTimeout;
 let focusInterval;
 
 watch(state, value => localStorage.setItem(SAVE_KEY, JSON.stringify(value)), { deep: true });
+watch(focusVisible, visible => { document.body.style.overflow = visible ? "hidden" : ""; }, { flush: "sync" });
 const mainQuests = computed(() => state.quests.filter(quest => !quest.side));
 const sideQuests = computed(() => state.quests.filter(quest => quest.side));
 const completions = computed(() => state.days[selectedDate.value] || {});
@@ -262,7 +263,7 @@ onMounted(() => {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) introVisible.value = false;
   else introTimeout = window.setTimeout(() => { introVisible.value = false; }, 3000);
 });
-onUnmounted(() => { clearInterval(midnightCheck); clearInterval(focusInterval); clearTimeout(toastTimeout); clearTimeout(introTimeout); });
+onUnmounted(() => { clearInterval(midnightCheck); clearInterval(focusInterval); clearTimeout(toastTimeout); clearTimeout(introTimeout); document.body.style.overflow = ""; });
 </script>
 
 <template>
