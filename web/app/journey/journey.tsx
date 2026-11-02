@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 
 type Quest = { id: string; title: string; side: boolean; xp: number };
-type Profile = { name: string; xp: number; quests: Quest[]; completions: Record<string, boolean>; today: string };
+type Profile = { name: string; xp: number; quests: Quest[]; completions: Record<string, boolean>; today: string; selectedDay: string };
 
 export default function Journey() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -51,10 +51,10 @@ export default function Journey() {
       <Calendar month={month} days={days} selected={selectedDay} today={today} onSelect={(day) => { followsToday.current = day === today; setSelectedDay(day); }} onMonth={setMonth}/>
       <div className="quest-header"><div><div className="eyebrow">{selectedDay === today ? "TODAY’S QUEST LOG" : "QUEST LOG"}</div><h2>Your next small wins</h2></div><div className="quest-count">{Object.values(profile?.completions || {}).filter(Boolean).length} COMPLETE</div></div>
       {error && <p className="form-message">{error}</p>}{!profile && <p className="story-copy">Loading your quest log…</p>}
-      <div className="quest-items">{profile?.quests.filter((q) => !q.side).map((quest) => <QuestRow key={quest.id} quest={quest} done={Boolean(profile.completions?.[quest.id])} onToggle={() => action({ action: "toggle", id: quest.id, day: selectedDay })} onDelete={() => action({ action: "delete", id: quest.id })} busy={busy || selectedDay > today}/>)}</div>
+      <div className="quest-items">{profile?.quests.filter((q) => !q.side).map((quest) => <QuestRow key={quest.id} quest={quest} done={Boolean(profile.completions?.[quest.id])} onToggle={() => action({ action: "toggle", id: quest.id, day: selectedDay })} onDelete={() => action({ action: "delete", id: quest.id, day: selectedDay })} busy={busy || selectedDay > today}/>)}</div>
       <div className="side-heading"><div><div className="eyebrow">OPTIONAL EXTRAS</div><h3>Side quests</h3></div></div>
-      <div className="quest-items">{profile?.quests.filter((q) => q.side).map((quest) => <QuestRow key={quest.id} quest={quest} done={Boolean(profile.completions?.[quest.id])} onToggle={() => action({ action: "toggle", id: quest.id, day: selectedDay })} onDelete={() => action({ action: "delete", id: quest.id })} busy={busy || selectedDay > today}/>)}</div>
-      <form className="add-quest" onSubmit={async (e) => { e.preventDefault(); if (!title.trim()) return; await action({ action: "add", title, side }); setTitle(""); }}><input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={90} placeholder="Add a quest for today…"/><label><input type="checkbox" checked={side} onChange={(e) => setSide(e.target.checked)}/> Side quest</label><button disabled={busy || !title.trim()}>＋ Add quest</button></form>
+      <div className="quest-items">{profile?.quests.filter((q) => q.side).map((quest) => <QuestRow key={quest.id} quest={quest} done={Boolean(profile.completions?.[quest.id])} onToggle={() => action({ action: "toggle", id: quest.id, day: selectedDay })} onDelete={() => action({ action: "delete", id: quest.id, day: selectedDay })} busy={busy || selectedDay > today}/>)}</div>
+      <form className="add-quest" onSubmit={async (e) => { e.preventDefault(); if (!title.trim()) return; await action({ action: "add", title, side, day: selectedDay }); setTitle(""); }}><input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={90} placeholder="Add a quest for today…"/><label><input type="checkbox" checked={side} onChange={(e) => setSide(e.target.checked)}/> Side quest</label><button disabled={busy || !title.trim()}>＋ Add quest</button></form>
       <p className="day-note">✧ Your quest checklist refreshes each day. Your XP stays with you.</p>
     </section>
   </main>;
