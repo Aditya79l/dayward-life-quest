@@ -34,8 +34,10 @@ const newTitle = ref("");
 const newSide = ref(false);
 const newXp = ref(50);
 const toast = ref("");
+const introVisible = ref(true);
 let toastTimeout;
 let midnightCheck;
+let introTimeout;
 
 watch(state, value => localStorage.setItem(SAVE_KEY, JSON.stringify(value)), { deep: true });
 const mainQuests = computed(() => state.quests.filter(quest => !quest.side));
@@ -135,12 +137,28 @@ function handleNewDay() {
   if (selectedDate.value !== today) selectedDate.value = today;
   if (calendarMonth.value.getMonth() !== new Date().getMonth() || calendarMonth.value.getFullYear() !== new Date().getFullYear()) calendarMonth.value = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 }
-onMounted(() => { midnightCheck = window.setInterval(handleNewDay, 30_000); });
-onUnmounted(() => { clearInterval(midnightCheck); clearTimeout(toastTimeout); });
+onMounted(() => {
+  midnightCheck = window.setInterval(handleNewDay, 30_000);
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) introVisible.value = false;
+  else introTimeout = window.setTimeout(() => { introVisible.value = false; }, 3000);
+});
+onUnmounted(() => { clearInterval(midnightCheck); clearTimeout(toastTimeout); clearTimeout(introTimeout); });
 </script>
 
 <template>
   <div class="app-frame">
+    <Transition name="intro"><div v-if="introVisible" class="intro-screen" role="status" aria-label="Opening duel animation">
+      <div class="intro-sky"><i class="intro-moon"></i><i class="intro-cloud cloud-a"></i><i class="intro-cloud cloud-b"></i><i class="intro-grain"></i></div>
+      <div class="intro-brand"><span>✳</span> DAYWARD</div>
+      <div class="duel-stage" aria-hidden="true">
+        <div class="duel-ring"></div><div class="duel-slash slash-blue"></div><div class="duel-slash slash-flame"></div>
+        <div class="duel-hunter hunter-blue"><i class="hunter-cloak"></i><i class="hunter-head"></i><i class="hunter-mask"></i><i class="hunter-body"></i><i class="hunter-arm"></i><i class="hunter-leg leg-front"></i><i class="hunter-leg leg-back"></i><i class="hunter-sword"><b></b></i></div>
+        <div class="duel-hunter hunter-flame"><i class="hunter-cloak"></i><i class="hunter-head"></i><i class="hunter-mask"></i><i class="hunter-body"></i><i class="hunter-arm"></i><i class="hunter-leg leg-front"></i><i class="hunter-leg leg-back"></i><i class="hunter-sword"><b></b></i></div>
+        <div class="duel-clash"><i></i><b></b><em></em></div>
+      </div>
+      <div class="intro-caption"><span>AN ADVENTURE AWAKENS</span><strong>Every day begins with a battle.</strong><small>Preparing your next quest…</small></div>
+      <button class="intro-skip" @click="introVisible = false">Skip intro <span>↗</span></button>
+    </div></Transition>
     <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
     <aside class="sidebar">
       <a class="brand" href="#today" @click.prevent="activeView = 'today'"><span class="brand-mark">✳</span> dayward<span class="brand-dot">.</span></a>
