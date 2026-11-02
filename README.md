@@ -1,6 +1,6 @@
 # Dayward
 
-Dayward turns a daily routine into a calm, game-like quest log. This first step is a browser prototype: open `index.html` directly to try it. Quests, XP, rank, calendar history, and streak are stored in that browser with `localStorage`.
+Dayward turns a daily routine into a calm, game-like quest log. The static GitHub Pages preview is available at the live link below. The authenticated Next.js app and MongoDB API live in `web/`.
 
 ## Live site
 
@@ -36,6 +36,6 @@ Passwords are checked server-side and stored only as bcrypt hashes. Each account
 ## Suggested next steps
 
 1. Add email verification and password reset before opening signups publicly.
-2. Add calendar history and account timezone settings.
-3. Expand rank rewards with achievements and cosmetic unlocks, keeping rest and missed days guilt-free.
+2. Expand rank rewards with achievements and cosmetic unlocks, keeping rest and missed days guilt-free.
+3. Add onboarding to help people choose their first routine quests.
 
