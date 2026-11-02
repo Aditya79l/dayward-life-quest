@@ -117,3 +117,47 @@
   *, *::before, *::after { scroll-behavior: auto !important; }
 }
 
+.target-panel { display: grid; grid-template-columns: minmax(155px, .7fr) minmax(0, 1.3fr); align-items: center; gap: 18px; margin-top: 14px; padding: 16px 20px; }
+.target-heading, .recap-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.target-heading h2, .recap-heading h3 { margin: 6px 0 0; font-size: 15px; font-weight: 620; }
+.target-orbit, .recap-spark { color: #96e8f4; text-shadow: 0 0 15px #59c9e577; font-size: 20px; }
+.target-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.target-field { display: grid; gap: 7px; color: #c7d3e6; font-size: 10px; }
+.target-field > span { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.target-field > span small { color: #73839b; font-size: 8px; }
+.target-field > div { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 6px 10px; border: 1px solid #ffffff16; border-radius: 8px; background: #07090df2; }
+.target-field input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: #edf6ff; font: inherit; font-size: 13px; font-weight: 650; }
+.target-field input:focus-visible { box-shadow: 0 1px #8fe5f5; }
+.target-field b { color: #8495ad; font-size: 8px; font-weight: 500; white-space: nowrap; }
+.analytics-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.export-button { padding: 8px 11px; border: 1px solid #79d9ed33; border-radius: 8px; background: #0d1920; }
+.weekly-recap { margin: 18px 0; padding: 17px; }
+.recap-heading { margin-bottom: 14px; }
+.recap-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.recap-stats > div { display: grid; align-content: start; gap: 5px; min-width: 0; padding: 12px; border: 1px solid #ffffff10; border-radius: 9px; background: #07090db5; }
+.recap-stats small, .wins-label { color: #8493aa; font-size: 7px; font-weight: 700; letter-spacing: 1px; }
+.recap-stats strong { color: #edf5ff; font-size: 20px; letter-spacing: -.5px; }
+.recap-stats strong i { color: #9db0c9; font-size: 8px; font-style: normal; font-weight: 500; letter-spacing: 0; }
+.recap-stats span { color: #8190a7; font-size: 8px; }
+.weekly-wins { margin-top: 15px; }
+.wins-label { margin-bottom: 8px; }
+.wins-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; }
+.wins-list article { display: grid; grid-template-columns: 13px minmax(0, 1fr) auto; align-items: center; gap: 6px; min-width: 0; padding: 7px 0; border-top: 1px solid #ffffff0c; }
+.wins-list article > span { color: #8fe4f3; font-size: 10px; }
+.wins-list article strong { overflow: hidden; color: #d9e4f4; font-size: 9px; font-weight: 550; text-overflow: ellipsis; white-space: nowrap; }
+.wins-list article small { color: #75849b; font-size: 8px; white-space: nowrap; }
+.wins-empty { margin: 0; color: #8493aa; font-size: 9px; }
+
+@media (max-width: 600px) {
+  .target-panel { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 14px; }
+  .target-fields { gap: 8px; }
+  .target-field > span { display: grid; gap: 3px; }
+  .analytics-actions { gap: 8px 12px; }
+  .weekly-recap { padding: 13px; }
+  .recap-stats { gap: 6px; }
+  .recap-stats > div { padding: 9px 7px; }
+  .recap-stats small { font-size: 6px; letter-spacing: .7px; }
+  .recap-stats strong { font-size: 17px; }
+  .wins-list { grid-template-columns: minmax(0, 1fr); }
+}
+
