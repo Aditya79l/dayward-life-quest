@@ -123,3 +123,26 @@ body{background:radial-gradient(ellipse at 82% 5%,#163c653d,transparent 35%),rad
 @media(max-width:600px){.duel-stage{transform:scale(.78)}.intro-moon{width:140px;left:calc(50% - 70px);top:16%}.intro-caption{bottom:12vh}.intro-skip{right:14px;bottom:14px}}
 @media(prefers-reduced-motion:reduce){.intro-screen{display:none!important}html,body,.app-frame{cursor:auto}}
 
+/* Near-black night mode: keep the breathing colors as small highlights. */
+body{background:radial-gradient(ellipse at 78% 8%,#12152332,transparent 35%),radial-gradient(ellipse at 14% 78%,#07141442,transparent 38%),radial-gradient(ellipse at 84% 82%,#1b0c0b29,transparent 34%),#030406}
+.app-frame{background:#030406}.ambient-a{background:#10191d;opacity:.12}.ambient-b{background:#1a1010;opacity:.1}
+.sidebar{background:rgba(3,4,7,.97);border-right-color:#ffffff0c}
+.main-content{background:transparent}
+.rank-banner{border-color:#ffffff19;background:radial-gradient(ellipse at 83% 46%,#1130391f,transparent 35%),radial-gradient(ellipse at 74% 110%,#32120e19,transparent 36%),linear-gradient(112deg,#0a0c10f5,#09090df2);box-shadow:0 25px 55px #0009,inset 0 1px #ffffff0c}
+.rank-banner:after{opacity:.12;background:radial-gradient(#eaf7ff 1px,transparent 1.5px);background-size:17px 17px}
+.quest-card{border-color:#ffffff12;background:linear-gradient(110deg,#0d0f13f2,#090a0df2);box-shadow:0 9px 0 -5px #000,0 15px 28px #0006,inset 0 1px #ffffff0b}
+.quest-card:hover{border-color:#78dff55c;background:linear-gradient(110deg,#10171b,#0c0d12);box-shadow:0 13px 0 -6px #000,0 20px 30px #0009,0 0 20px #36d8ff10}
+.glass-panel{border-color:#ffffff14;background:linear-gradient(145deg,#101115f5,#090a0df5);box-shadow:0 12px 0 -7px #000,0 18px 32px #0007,inset 0 1px #ffffff0b,inset 0 -3px #000}
+.calendar-panel,.summary-panel,.metric-card,.chart-panel,.insight-panel{background:linear-gradient(145deg,#101115f7,#090a0ef7)}
+.rank-mini{border-color:#ffffff16;background:linear-gradient(140deg,#111318f5,#090a0ef5);box-shadow:0 10px 0 -5px #000,0 16px 24px #0008,inset 0 1px #ffffff0b}
+.calendar-grid>i>button.selected{background:linear-gradient(145deg,#125465,#273e70);box-shadow:0 0 15px #45dbed46,inset 0 1px #fff6}
+.calendar-grid>i>button:hover:not(:disabled){background:#191b20}
+.quest-check{background:linear-gradient(145deg,#111b20,#15151c)}
+.add-side-card{background:linear-gradient(110deg,#0b161999,#17100f77);box-shadow:inset 0 1px #fff1,0 7px 14px #0007}
+.add-side-card:hover{background:#17191b}
+.quest-form input,.quest-form select{background:#08090c;border-color:#ffffff1a}
+.bar-rail{background:#111216}.donut:before{background:#101115}
+.intro-sky{background:radial-gradient(ellipse at 50% 47%,#17212432,transparent 30%),radial-gradient(ellipse at 25% 75%,#0a333626,transparent 36%),radial-gradient(ellipse at 82% 37%,#35140f1b,transparent 38%),linear-gradient(180deg,#030407,#08090c 58%,#030304)}
+.intro-moon{opacity:.38;box-shadow:0 0 60px #70dcff20,0 0 140px #4ebedb12}
+.intro-cloud{opacity:.11}.intro-screen{background:#030304}
+
