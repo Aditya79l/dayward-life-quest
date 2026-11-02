@@ -152,7 +152,7 @@ onUnmounted(() => { clearInterval(midnightCheck); clearTimeout(toastTimeout); cl
       <div class="intro-brand"><span>✳</span> DAYWARD</div>
       <div class="galaxy-stage" aria-hidden="true">
         <div class="galaxy-halo"></div><div class="star-orbit orbit-far"></div><div class="star-orbit orbit-near"></div>
-        <div class="planet planet-large"><i></i></div><div class="planet planet-small"></div><div class="planet planet-ember"></div>
+        <div class="planet planet-large"><i></i></div><div class="planet planet-small"></div><div class="planet planet-ember"></div><div class="planet planet-indigo"></div><div class="planet planet-ice"></div>
         <div class="moonlet"></div><div class="rocket-path"><div class="intro-rocket"><i class="rocket-nose"></i><i class="rocket-hull"></i><i class="rocket-window"></i><i class="rocket-fin fin-left"></i><i class="rocket-fin fin-right"></i><i class="rocket-flame"></i></div></div>
         <i class="sparkle sparkle-a">✦</i><i class="sparkle sparkle-b">✧</i><i class="sparkle sparkle-c">·</i><i class="sparkle sparkle-d">✦</i>
       </div>
