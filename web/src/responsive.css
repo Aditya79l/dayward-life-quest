@@ -1,4 +1,5 @@
 /* Responsive layout refinements for tablets and phones. */
+html, body, #app { max-width: 100%; }
 @media (max-width: 780px) {
   .main-content { min-width: 0; }
   .rank-copy { min-width: 0; }
