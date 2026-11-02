@@ -1,0 +1,119 @@
+/* Responsive layout refinements for tablets and phones. */
+@media (max-width: 780px) {
+  .main-content { min-width: 0; }
+  .rank-copy { min-width: 0; }
+  .analytics-grid { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .sidebar {
+    inset: auto 0 0;
+    width: auto;
+    height: calc(62px + env(safe-area-inset-bottom, 0px));
+    padding: 7px 12px calc(7px + env(safe-area-inset-bottom, 0px));
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-top: 1px solid #ffffff15;
+    background: #07080bf5;
+    backdrop-filter: blur(20px);
+  }
+  .sidebar .brand,
+  .sidebar .nav-caption,
+  .sidebar-bottom { display: none; }
+  .sidebar .nav-stack {
+    display: flex;
+    width: min(100%, 420px);
+    margin: 0;
+    justify-content: space-around;
+    gap: 10px;
+  }
+  .sidebar .nav-item,
+  .sidebar .nav-item:not(.active),
+  .sidebar .nav-item.active {
+    display: flex;
+    width: auto;
+    min-width: 112px;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 14px;
+    font-size: 11px;
+  }
+  .sidebar .nav-icon { font-size: 16px; }
+  .sidebar .nav-count { display: inline; font-size: 10px; }
+  .main-content {
+    width: 100%;
+    margin-left: 0;
+    padding: 0 14px calc(82px + env(safe-area-inset-bottom, 0px));
+  }
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    height: 56px;
+    background: #030406ed;
+    backdrop-filter: blur(16px);
+  }
+  .welcome-row { align-items: flex-start; gap: 10px; margin: 20px 0 17px; }
+  .welcome-row > div { min-width: 0; }
+  .welcome-row h1 { font-size: clamp(22px, 6vw, 27px); }
+  .welcome-sub { max-width: 270px; line-height: 1.55; }
+  .welcome-row > .primary-button { flex: 0 0 auto; padding: 9px 11px; white-space: nowrap; }
+  .rank-banner { grid-template-columns: minmax(0, 1fr); min-height: 0; padding: 17px; }
+  .rank-copy { max-width: none; }
+  .rank-copy h2 { font-size: 21px; }
+  .banner-foot { gap: 8px; }
+  .content-grid { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+  .primary-column, .right-column { min-width: 0; }
+  .right-column { grid-template-columns: minmax(0, 1fr); }
+  .section-heading { align-items: flex-start; gap: 8px; flex-wrap: wrap; }
+  .heading-line { flex-wrap: wrap; gap: 7px; }
+  .section-heading p { line-height: 1.5; }
+  .quest-card {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) 23px;
+    grid-template-areas: "check text delete" "check reward delete";
+    align-items: center;
+    gap: 5px 9px;
+    min-height: 68px;
+    padding: 10px;
+  }
+  .quest-check { grid-area: check; }
+  .quest-text { grid-area: text; gap: 4px; }
+  .quest-text strong,
+  .side-card .quest-text strong { overflow: visible; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; font-size: 10px; }
+  .quest-category, .quest-text small { font-size: 8px; }
+  .quest-reward { grid-area: reward; justify-self: start; font-size: 9px; }
+  .delete-button { grid-area: delete; justify-self: center; }
+  .calendar-grid { gap: 4px 2px; }
+  .calendar-grid > i { height: 37px; }
+  .calendar-grid > i > button { width: 100%; height: 33px; }
+  .analytics-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .analytics-grid { grid-template-columns: minmax(0, 1fr); }
+  .metric-card { min-width: 0; }
+  .metric-card > strong { font-size: clamp(19px, 6vw, 24px); }
+  .chart { gap: 5px; }
+  .bar-rail { width: min(28px, 70%); }
+  .quest-form { width: 100%; }
+  .form-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .toast-message { right: 12px; bottom: calc(74px + env(safe-area-inset-bottom, 0px)); left: 12px; text-align: center; }
+}
+
+@media (max-width: 380px) {
+  .main-content { padding-right: 11px; padding-left: 11px; }
+  .crumb { font-size: 7px; letter-spacing: 1px; }
+  .crumb span { padding: 0 5px; }
+  .topbar-right { gap: 7px; }
+  .streak-pill { gap: 4px; padding: 0 8px; font-size: 8px; }
+  .welcome-row { gap: 6px; }
+  .welcome-row > .primary-button { gap: 5px; padding: 8px; font-size: 8px; }
+  .eyebrow { font-size: 8px; }
+  .banner-xp { gap: 7px; flex-wrap: wrap; }
+  .form-row { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; }
+}
+
