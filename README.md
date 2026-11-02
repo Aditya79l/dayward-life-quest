@@ -1,6 +1,6 @@
-# Dayward
+# Daynova
 
-Dayward is Aditya’s personal, space-themed routine dashboard. It uses Vue 3, Vite, and Tailwind CSS v4. There is no login, signup, or backend. Quest templates, day-by-day completions, XP, and streak history are saved in this browser with `localStorage`.
+Daynova is Aditya’s personal, space-themed daily quest dashboard. It uses Vue 3, Vite, and Tailwind CSS v4. There is no login, signup, or backend. Quest templates, day-by-day completions, XP, and streak history are saved in this browser with `localStorage`.
 
 ## Live site
 
