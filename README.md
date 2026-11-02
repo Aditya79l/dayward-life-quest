@@ -22,14 +22,15 @@ Dayward turns a daily routine into a calm, game-like quest log. The static GitHu
 
 The root files remain the public GitHub Pages preview. The full-stack app is in `web/`: Next.js App Router, React, TypeScript, Tailwind CSS v4, Auth.js, bcryptjs, and MongoDB Atlas. It includes email/password login, signup, Google/Discord OAuth, and a dated quest log with XP and add/delete/toggle actions.
 
-GitHub Pages continues to host the static preview. It cannot run the account/API routes, so deploy the `web/` project on Vercel with the project root set to `web`. Netlify can host the same Next.js app as an alternative.
+GitHub Pages continues to host the static preview. It cannot run the account/API routes. The full app is configured for Render's free web service via the root `render.yaml`, with `web/` as its root directory and Singapore as its region. Render's free service sleeps after 15 minutes of inactivity, so the first request after a pause can take longer. Atlas M0 is the free MongoDB option.
 
 ## Configure the full-stack app
 
-1. Copy `web/.env.example` to `web/.env.local` and fill in MongoDB Atlas, `AUTH_SECRET`, Google OAuth, and Discord OAuth values. Use an Atlas database user limited to this app's database.
+1. For local development, copy `web/.env.example` to `web/.env.local` and fill in MongoDB Atlas, `AUTH_SECRET`, Google OAuth, and Discord OAuth values. Use an Atlas database user limited to this app's database.
 2. Set provider callback URLs to `https://<your-domain>/api/auth/callback/google` and `/api/auth/callback/discord` (or localhost during development).
 3. From `web/`, run `npm install` and `npm run dev`.
-4. In Vercel, import the repository, set Root Directory to `web`, and add the same environment variables in Project Settings.
+4. In Render, create a Blueprint from this repository. The service uses the free plan; enter the MongoDB and OAuth environment values when prompted.
+5. After the service exists, copy its outbound IP ranges from Render's service dashboard and add those ranges to the Atlas IP access list. Keep the Atlas allowlist restricted to the service ranges instead of opening it to every IP.
 
 Passwords are checked server-side and stored only as bcrypt hashes. Each account starts with 0 XP. OAuth and database-backed login require real provider credentials and a MongoDB URI; these are intentionally not committed.
 
