@@ -3,15 +3,19 @@ import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 
 const SAVE_KEY = "dayward-vue-v1";
 const todayKey = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+const legacyQuestIds = new Set(["m1", "m2", "m3", "m4", "s1", "s2"]);
 const makeDefaults = () => ({
   xp: 0,
   quests: [
-    { id: "m1", title: "Set an intention for today", category: "Mind & focus", xp: 25, side: false },
-    { id: "m2", title: "Move your body for 20 minutes", category: "Body & energy", xp: 50, side: false },
-    { id: "m3", title: "Make progress on one important task", category: "Work & craft", xp: 75, side: false },
-    { id: "m4", title: "Wind down without a screen", category: "Rest & reset", xp: 25, side: false },
-    { id: "s1", title: "Get outside for a little while", category: "A little extra", xp: 25, side: true },
-    { id: "s2", title: "Read a few pages", category: "A little extra", xp: 25, side: true },
+    { id: "daily-steps", title: "Daily 10K Steps", category: "MOVE & EXPLORE", xp: 75, side: false },
+    { id: "water-3l", title: "Drink 3L Water", category: "FUEL YOUR BODY", xp: 50, side: false },
+    { id: "dsa-practice", title: "DSA Practice", category: "SHARPEN YOUR MIND", xp: 100, side: false },
+    { id: "gym-running", title: "Gym / Running", category: "BUILD YOUR STRENGTH", xp: 100, side: false },
+    { id: "ai-learning", title: "AI Learning", category: "FUTURE SKILLS", xp: 75, side: false },
+    { id: "no-sugar", title: "No Sugar Today", category: "MINDFUL FUEL", xp: 40, side: true },
+    { id: "no-junk", title: "Skip Junk Food", category: "SMART CHOICES", xp: 40, side: true },
+    { id: "book-reading", title: "Read a Book", category: "LIFELONG LEARNING", xp: 40, side: true },
+    { id: "football", title: "Play Football", category: "PLAY & RECOVER", xp: 40, side: true },
   ],
   days: {},
   dayXp: {},
@@ -19,7 +23,14 @@ const makeDefaults = () => ({
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
-    if (saved && Array.isArray(saved.quests) && saved.days && typeof saved.xp === "number") return { ...makeDefaults(), ...saved };
+    if (saved && Array.isArray(saved.quests) && saved.days && typeof saved.xp === "number") {
+      const defaults = makeDefaults();
+      const defaultIds = new Set(defaults.quests.map(quest => quest.id));
+      const savedQuests = saved.quests.filter(quest => !legacyQuestIds.has(quest.id));
+      const seededQuests = defaults.quests.map(template => savedQuests.find(quest => quest.id === template.id) ?? template);
+      const customQuests = savedQuests.filter(quest => !defaultIds.has(quest.id));
+      return { ...defaults, ...saved, quests: [...seededQuests, ...customQuests] };
+    }
   } catch { /* start fresh if local data is unavailable */ }
   return makeDefaults();
 }
@@ -149,7 +160,7 @@ onUnmounted(() => { clearInterval(midnightCheck); clearTimeout(toastTimeout); cl
   <div class="app-frame">
     <Transition name="intro"><div v-if="introVisible" class="intro-screen" role="status" aria-label="A twinkling Milky Way over a field of planets">
       <div class="intro-sky"><div class="galaxy-stars"></div><i class="galaxy-nebula nebula-blue"></i><i class="galaxy-nebula nebula-violet"></i><i class="galaxy-nebula nebula-rose"></i></div>
-      <div class="intro-brand"><span>✳</span> DAYWARD</div>
+      <div class="intro-brand"><span>✳</span> DAYNOVA</div>
       <div class="galaxy-stage" aria-hidden="true">
         <div class="galaxy-halo"></div><div class="star-orbit orbit-far"></div><div class="star-orbit orbit-near"></div>
         <div class="planet planet-large"><i></i></div><div class="planet planet-small"></div><div class="planet planet-ember"></div><div class="planet planet-indigo"></div><div class="planet planet-ice"></div>
@@ -161,7 +172,7 @@ onUnmounted(() => { clearInterval(midnightCheck); clearTimeout(toastTimeout); cl
     </div></Transition>
     <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
     <aside class="sidebar">
-      <a class="brand" href="#today" @click.prevent="activeView = 'today'"><span class="brand-mark">✳</span> dayward<span class="brand-dot">.</span></a>
+      <a class="brand" href="#today" @click.prevent="activeView = 'today'"><span class="brand-mark">✳</span> daynova<span class="brand-dot">.</span></a>
       <div class="nav-caption">YOUR JOURNEY</div>
       <nav class="nav-stack" aria-label="Main navigation">
         <button :class="['nav-item', { active: activeView === 'today' }]" @click="activeView = 'today'"><span class="nav-icon">◈</span> Today <span class="nav-count">{{ mainQuests.length - completedMain }}</span></button>
@@ -200,7 +211,7 @@ onUnmounted(() => { clearInterval(midnightCheck); clearTimeout(toastTimeout); cl
           <div class="quest-list side-list">
             <article v-for="quest in sideQuests" :key="quest.id" :class="['quest-card', 'side-card', { completed: completions[quest.id] }]">
               <button class="quest-check" :disabled="selectedDate > todayKey()" :aria-label="completions[quest.id] ? 'Mark incomplete' : 'Complete quest'" @click="toggleQuest(quest)">{{ completions[quest.id] ? '✓' : '' }}</button>
-              <div class="quest-text"><strong>{{ quest.title }}</strong><small>◷ &nbsp;A little extra</small></div>
+              <div class="quest-text"><strong>{{ quest.title }}</strong><small>◷ &nbsp;{{ quest.category }}</small></div>
               <span class="quest-reward">✦ &nbsp;{{ quest.xp }} XP</span><button class="delete-button" aria-label="Delete side quest" @click="deleteQuest(quest)">×</button>
             </article>
             <button class="add-side-card" @click="showQuestForm = true; newSide = true"><span>＋</span> Add a little side quest</button>
