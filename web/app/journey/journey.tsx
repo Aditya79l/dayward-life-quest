@@ -41,7 +41,7 @@ export default function Journey() {
     } catch { setError("Unable to save. Try again."); } finally { setBusy(false); }
   }
 
-  const rank = profile ? `Wayfinder ${Math.min(3, Math.floor(profile.xp / 300) + 1)}` : "Wayfinder I";
+  const rank = adventureRank(profile?.xp || 0);
   const days = calendarCells(month);
   const today = profile?.today || localDay(new Date());
   return <main className="journey">
@@ -73,4 +73,5 @@ function QuestRow({ quest, done, onToggle, onDelete, busy }: { quest: Quest; don
 function localDay(date: Date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`; }
 function formatDay(day: string) { return new Date(`${day}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }); }
 function calendarCells(month: Date) { const leading = (month.getDay() + 6) % 7; const count = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate(); return [...Array(leading).fill(null), ...Array.from({ length: count }, (_, index) => `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}-${String(index + 1).padStart(2, "0")}`)]; }
+function adventureRank(xp: number) { const steps = [{ min: 0, title: "Wayfinder I" }, { min: 300, title: "Wayfinder II" }, { min: 600, title: "Wayfinder III" }, { min: 900, title: "Pathfinder I" }, { min: 1200, title: "Trailblazer I" }, { min: 1500, title: "Trailblazer II" }, { min: 1800, title: "Trailblazer III" }, { min: 2100, title: "Warden I" }, { min: 2400, title: "Warden II" }, { min: 2700, title: "Warden III" }]; if (xp >= 3000) return `Vanguard ${Math.floor((xp - 3000) / 300) + 1}`; return [...steps].reverse().find((step) => xp >= step.min)?.title || "Wayfinder I"; }
 
