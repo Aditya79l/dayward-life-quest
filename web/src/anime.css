@@ -186,3 +186,15 @@ body{background:radial-gradient(ellipse at 78% 8%,#12152332,transparent 35%),rad
 @media(max-width:600px){.galaxy-stage{transform:scale(.8)}.galaxy-nebula{filter:blur(35px)}.intro-caption{bottom:12vh}.intro-skip{right:14px;bottom:14px}}
 @media(prefers-reduced-motion:reduce){.galaxy-stars,.galaxy-halo,.rocket-path,.intro-rocket,.rocket-flame,.sparkle,.planet-small,.planet-ember,.moonlet{animation:none}}
 
+/* A deeper, quieter galaxy with a more obvious spacecraft orbit. */
+.intro-sky{background:radial-gradient(ellipse at 50% 48%,#090c1a26,transparent 25%),radial-gradient(ellipse at 26% 58%,#08111a2b,transparent 36%),radial-gradient(ellipse at 76% 42%,#100b1829,transparent 32%),linear-gradient(180deg,#010102,#030407 56%,#010102)}
+.galaxy-nebula{opacity:.13;filter:blur(58px)}
+.nebula-blue{background:#123246}.nebula-violet{background:#21162e}.nebula-rose{background:#321a2930}
+.planet-indigo{z-index:2;left:18%;top:31%;width:clamp(18px,3vw,29px);height:clamp(18px,3vw,29px);background:radial-gradient(circle at 30% 24%,#f3eaff,#9b7bd2 38%,#413765 75%,#10101c);box-shadow:inset -5px -4px 8px #02020a,0 0 18px #7658b838;animation:planet-float 6s ease-in-out -1.6s infinite}
+.planet-ice{z-index:2;left:82%;top:68%;width:clamp(12px,2vw,20px);height:clamp(12px,2vw,20px);background:radial-gradient(circle at 30% 24%,#efffff,#8ac8d0 38%,#345b72 75%,#101522);box-shadow:inset -4px -3px 6px #02040a,0 0 16px #76deea32;animation:planet-float 5.5s ease-in-out -3s infinite}
+.rocket-path{width:min(490px,78vw);height:min(286px,46vw);min-height:190px;animation-duration:5.2s}
+.intro-rocket{width:32px;height:88px;transform:translate(-50%,-50%) rotate(90deg) rotateX(-66deg);filter:drop-shadow(0 0 13px #7de8ffb0) drop-shadow(0 0 5px #fff9)}
+.rocket-hull{left:8px;top:16px;width:16px;height:49px}.rocket-nose{left:8px;top:3px;width:16px;height:19px}.rocket-window{left:12px;top:29px;width:8px;height:8px}.rocket-fin{top:48px;width:12px;height:24px}.rocket-flame{left:12px;top:62px;width:9px;height:25px}
+.intro-rocket .rocket-hull{box-shadow:inset 0 0 6px #fff,0 0 7px #73e8ff91}
+.app-frame,.app-frame *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M4 2 26 21 17 22 13 30z' fill='%23030306' stroke='%23f5f7ff' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='m24 3 1.5 3.5L29 8l-3.5 1.5L24 13l-1.5-3.5L19 8l3.5-1.5z' fill='%237de8ff' stroke='%23030306' stroke-width='.8'/%3E%3Cpath d='m9 18 .8 1.8 1.8.7-1.8.8L9 25l-.8-1.7-1.7-.8 1.7-.7z' fill='%23c9b8ff'/%3E%3C/svg%3E") 4 2,auto}
+
