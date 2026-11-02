@@ -33,3 +33,48 @@ body{background:radial-gradient(ellipse at 79% 6%,#60398335,transparent 34%),rad
 @media(max-width:540px){.pilot-figure{display:none}}
 @media(prefers-reduced-motion:reduce){.pilot-figure,.brand-mark,.orbit-star.one,.orbit-star.two{animation:none}}
 
+/* Night-hunt inspired palette and a layered, original 3D breathing scene. */
+:root{--cyan:#82e7ff;--blue:#89a8ff;--pink:#ff8b73;--line:rgba(124,188,255,.2)}
+body{background:radial-gradient(ellipse at 82% 5%,#163c653d,transparent 35%),radial-gradient(ellipse at 12% 80%,#0b697332,transparent 38%),radial-gradient(ellipse at 84% 80%,#8b33251b,transparent 33%),#070a12}
+.ambient-a{background:#176f8a;opacity:.18}.ambient-b{background:#a43b31;opacity:.13}
+.brand-mark{border-color:#70dcff55;background:linear-gradient(145deg,#154663,#18344d);box-shadow:0 0 20px #3fc9ff45}
+.nav-item.active{background:linear-gradient(100deg,#133850d9,#141e34d9);border-color:#6ce2ff50;box-shadow:inset 3px 0 #75e5ff,0 7px 24px #0005}.nav-item.active .nav-icon{color:#8eeeff;text-shadow:0 0 12px #39cbff}
+.streak-pill{border-color:#ff916a57;background:linear-gradient(100deg,#48251fbd,#202139bd);box-shadow:0 0 20px #ff714319}.streak-flame{color:#ff9a6e;text-shadow:0 0 12px #ff6734}
+.top-avatar,.avatar{border-color:#8ce8ff8a;background:linear-gradient(145deg,#156b83,#3155a1 68%,#943e37);box-shadow:0 0 18px #42c9ef3a}
+.welcome-row h1 em{background-image:linear-gradient(100deg,#9ceeff,#80baff 47%,#ff9876)}
+.rank-banner{perspective:900px;transform-style:preserve-3d;border-color:#66c5e84d;background:radial-gradient(ellipse at 82% 48%,#1c97a32b,transparent 34%),radial-gradient(ellipse at 75% 110%,#a9412526,transparent 35%),linear-gradient(112deg,#0e2134f5,#11172cf2);box-shadow:0 25px 55px #0007,inset 0 1px #d9f7ff1a}
+.rank-banner:after{opacity:.2;background:radial-gradient(#bcefff 1px,transparent 1.5px);background-size:17px 17px;mask-image:linear-gradient(90deg,transparent 42%,#000 100%)}
+.rank-copy,.orbit-art{position:relative;z-index:1;transform:translateZ(18px)}.banner-label span,.banner-xp strong{color:#98f1ff}.banner-track{background:#25394c}.banner-track span{background:linear-gradient(90deg,#61dff0,#49a6c4 55%,#ff906d)}
+.orbit-art{perspective:650px;transform-style:preserve-3d;filter:drop-shadow(0 12px 13px #0007)}
+.orbit-outer{border-color:#75e4ff77;box-shadow:0 0 19px #60dbff28;transform:rotate(-19deg) translateZ(15px)}.orbit-inner{border-color:#ff987344;transform:rotate(28deg) translateZ(24px)}
+.orbit-art .planet{background:radial-gradient(circle at 30% 27%,#dbfbff,#66c5d6 18%,#276c8d 54%,#101b3e 81%);box-shadow:0 10px 28px #0008,0 0 48px #4edcf45c,inset -14px -11px 20px #030716;transform:translateZ(32px)}
+.orbit-star{color:#baf8ff;text-shadow:0 0 11px #5bdcff,0 0 25px #ff754f77}.planet-label{color:#9ac4d3}
+.katana-scene{position:absolute;z-index:4;inset:0;perspective:500px;transform-style:preserve-3d;pointer-events:none}
+.katana{position:absolute;left:142px;top:18px;width:15px;height:116px;transform:rotate(37deg) rotateY(-23deg) translateZ(55px);transform-style:preserve-3d;filter:drop-shadow(5px 9px 7px #0009);animation:blade-hover 5s ease-in-out infinite}
+.katana i{position:absolute;display:block}
+.katana .blade{left:3px;top:0;width:9px;height:79px;clip-path:polygon(0 0,100% 0,100% 87%,50% 100%,0 87%);background:linear-gradient(90deg,#4d8592,#dcfbff 29%,#8feaff 53%,#f6ffff 67%,#437a8a);box-shadow:inset 0 0 4px #fff;transform:translateZ(4px)}
+.katana .blade:after{content:"";position:absolute;inset:4px 3px 13px;background:linear-gradient(180deg,#fff,#86efff88,transparent);opacity:.8}
+.katana .guard{left:-3px;top:74px;width:21px;height:6px;border:1px solid #ffe2a1;border-radius:50%;background:linear-gradient(90deg,#9c492c,#ffd58c,#a94c31);box-shadow:0 0 11px #ff985557;transform:translateZ(8px)}
+.katana .handle{left:4px;top:79px;width:8px;height:32px;border:1px solid #e4c994;border-radius:2px;background:repeating-linear-gradient(135deg,#181d30 0 4px,#a53e39 4px 6px,#20243a 6px 10px);transform:translateZ(5px)}
+.katana .pommel{left:3px;top:108px;width:10px;height:7px;border-radius:40%;background:linear-gradient(135deg,#ffe5a7,#a65c35);transform:translateZ(5px)}
+.breath-ring{position:absolute;z-index:2;border:2px solid transparent;border-radius:50%;filter:drop-shadow(0 0 8px #46ddff);transform-style:preserve-3d}
+.ring-one{left:78px;top:24px;width:137px;height:83px;border-top-color:#66e8ffbd;border-right-color:#70ddff68;transform:rotate(-28deg) rotateY(48deg) translateZ(38px);animation:breath-flow 7s linear infinite}
+.ring-two{left:92px;top:42px;width:113px;height:65px;border-bottom-color:#ff96787d;border-left-color:#ffb08755;transform:rotate(31deg) rotateX(52deg) translateZ(25px);animation:breath-flow 9s linear infinite reverse}
+.quest-card,.glass-panel,.rank-mini{transform-style:preserve-3d;transition:transform .22s ease,border .2s,background .2s,box-shadow .2s}
+.quest-card{border-color:#72bfd52b;box-shadow:0 9px 0 -5px #050911,0 15px 28px #0003,inset 0 1px #ffffff12}
+.quest-card:hover{transform:perspective(700px) translateY(-4px) rotateX(2deg) translateZ(5px);border-color:#72e9ff88;background:linear-gradient(110deg,#143748ed,#101d34ed);box-shadow:0 13px 0 -6px #07131c,0 20px 30px #0006,0 0 20px #36d8ff14}
+.quest-check{border-color:#7be6ff9c;background:linear-gradient(145deg,#153f51,#202b4c);box-shadow:inset 0 1px #fff2,0 3px 7px #0006}.quest-card.completed .quest-check{background:linear-gradient(145deg,#117c82,#3688aa);border-color:#8af1ed}
+.count-chip{border-color:#69d9ef48;background:#143340;color:#a5f5ff}.side-spark{color:#ff9874;text-shadow:0 0 11px #ff987475}.add-side-card{border-color:#78dded6b;background:linear-gradient(110deg,#17394999,#211f3555);color:#b2f4ff;box-shadow:inset 0 1px #fff1,0 7px 14px #0003}.add-side-card:hover{border-color:#ffad7c;background:#253542}
+.glass-panel{border-color:#77c9df35;background:linear-gradient(145deg,#192d40ed,#10172aeb);box-shadow:0 12px 25px #0003,inset 0 1px #d8faff12,inset 0 -3px #050a1466;transform:perspective(900px) translateZ(0)}
+.calendar-panel,.summary-panel,.metric-card,.chart-panel,.insight-panel{transform:perspective(900px) rotateX(1deg);box-shadow:0 12px 0 -7px #050911,0 18px 32px #0004,inset 0 1px #d8faff12}
+.calendar-grid>i>button.selected{background:linear-gradient(145deg,#17829a,#31589a);box-shadow:0 0 15px #45dbed69,inset 0 1px #fff6}.calendar-grid>i>button.today{border-color:#89e5f099;color:#a8f4ff}.calendar-grid>i>button b{background:#ff9a77;box-shadow:0 0 6px #ff7954}
+.metric-icon.cyan{color:#8beaf0}.metric-icon.blue{color:#9fc6ff}.metric-icon.violet{color:#ff9b7c}.metric-icon.teal{color:#78dfc9}.bar-rail i{background:linear-gradient(180deg,#ff9b75 0%,#62d6e7 48%,#5388de 100%);box-shadow:0 0 17px #62dff049}.insight-orb{background:radial-gradient(circle at 33% 25%,#efffff,#67c9cf 39%,#294f82 76%);box-shadow:0 0 36px #59d8e55c}
+.rank-mini{border-color:#66cbe146;background:linear-gradient(140deg,#183b4dbf,#171c38c4);box-shadow:0 10px 0 -5px #050911,0 16px 24px #0004,inset 0 1px #fff1}.rank-track i{background:linear-gradient(90deg,#70e5ee,#54a9cf 60%,#ff9873)}
+.primary-button{border-color:#73e2f58a;background:linear-gradient(105deg,#126b80,#276695 62%,#9d493b);box-shadow:0 7px 0 -3px #08151c,0 12px 22px #0005,0 0 20px #48d8ed1c}.primary-button:hover{filter:brightness(1.16);transform:translateY(-2px) rotateX(3deg)}
+.toast-message{border-color:#7ce3f47a;background:linear-gradient(110deg,#173d4bf5,#18223cf5);box-shadow:0 12px 30px #0008,0 0 18px #4bcde926}
+@keyframes blade-hover{0%,100%{translate:0 0;rotate:0deg}50%{translate:0 -5px;rotate:1deg}}
+@keyframes breath-flow{0%{filter:drop-shadow(0 0 5px #46ddff);opacity:.55}50%{filter:drop-shadow(0 0 13px #54e5ff);opacity:1}100%{filter:drop-shadow(0 0 5px #ff9c78);opacity:.65}}
+@media(max-width:780px){.katana{left:119px;top:23px;transform:rotate(37deg) rotateY(-23deg) scale(.82) translateZ(55px)}}
+@media(max-width:540px){.orbit-art{display:none}}
+@media(prefers-reduced-motion:reduce){.katana,.breath-ring,.brand-mark{animation:none}}
+
