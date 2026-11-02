@@ -19,8 +19,9 @@ export async function GET(request: Request) {
   const userId = new ObjectId(session.user.id);
   const requestedZone = new URL(request.url).searchParams.get("timezone") || "UTC";
   let timezone = "UTC";
-  try { new Intl.DateTimeFormat("en", { timeZone: requestedZone }); timezone = requestedZone; } catch { /* keep UTC for invalid client values */ }
+  try { if (requestedZone.length > 80) throw new Error("Invalid timezone"); new Intl.DateTimeFormat("en", { timeZone: requestedZone }); timezone = requestedZone; } catch { /* keep UTC for invalid client values */ }
   const profiles = db.collection<Profile>("profiles");
+  await profiles.createIndex({ userId: 1 }, { unique: true });
   let profile = await profiles.findOne({ userId });
   if (!profile) {
     const fresh: Profile = { userId, xp: 0, rank: "Wayfinder I", quests: defaults, days: {}, timezone };
@@ -70,6 +71,6 @@ export async function POST(request: Request) {
     await profiles.updateOne({ userId }, { $set: { days, xp: Math.max(0, (profile.xp || 0) + (wasDone ? -quest.xp : quest.xp)) } });
   } else return NextResponse.json({ error: "Unknown action." }, { status: 400 });
   const updated = await profiles.findOne({ userId });
-  return NextResponse.json({ ok: true, xp: updated?.xp || 0, quests: updated?.quests || defaults, completions: updated?.days?.[day] || {}, today: day });
+  return NextResponse.json({ ok: true, xp: updated?.xp || 0, quests: updated?.quests || defaults, completions: updated?.days?.[day] || {}, today, selectedDay: day });
 }
 
