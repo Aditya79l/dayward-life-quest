@@ -18,6 +18,8 @@ const makeDefaults = () => ({
     { id: "football", title: "⚽ Play Football", category: "PLAY & RECOVER", xp: 40, side: true },
   ],
   targets: { steps: 10000, waterMl: 3000 },
+  focusSession: { questId: null, minutes: 25, remainingSeconds: 1500, endsAt: null, running: false },
+  focusHistory: [],
   days: {},
   dayXp: {},
 });
@@ -30,7 +32,14 @@ function loadState() {
       const savedQuests = saved.quests.filter(quest => !legacyQuestIds.has(quest.id));
       const seededQuests = defaults.quests;
       const customQuests = savedQuests.filter(quest => !defaultIds.has(quest.id));
-      return { ...defaults, ...saved, targets: { ...defaults.targets, ...saved.targets }, quests: [...seededQuests, ...customQuests] };
+      return {
+        ...defaults,
+        ...saved,
+        targets: { ...defaults.targets, ...saved.targets },
+        focusSession: { ...defaults.focusSession, ...saved.focusSession },
+        focusHistory: Array.isArray(saved.focusHistory) ? saved.focusHistory : [],
+        quests: [...seededQuests, ...customQuests],
+      };
     }
   } catch { /* start fresh if local data is unavailable */ }
   return makeDefaults();
@@ -47,11 +56,13 @@ const newSide = ref(false);
 const newXp = ref(50);
 const toast = ref("");
 const introVisible = ref(true);
+const focusVisible = ref(false);
 const stepTargetDraft = ref(state.targets.steps);
 const waterTargetDraft = ref(state.targets.waterMl);
 let toastTimeout;
 let midnightCheck;
 let introTimeout;
+let focusInterval;
 
 watch(state, value => localStorage.setItem(SAVE_KEY, JSON.stringify(value)), { deep: true });
 const mainQuests = computed(() => state.quests.filter(quest => !quest.side));
@@ -114,6 +125,9 @@ const bestStreak = computed(() => {
   return best;
 });
 const maxBar = computed(() => Math.max(50, ...lastSeven.value.map(day => day.xp)));
+const focusClock = computed(() => `${String(Math.floor(state.focusSession.remainingSeconds / 60)).padStart(2, "0")}:${String(state.focusSession.remainingSeconds % 60).padStart(2, "0")}`);
+const focusProgress = computed(() => Math.min(100, Math.max(0, Math.round((1 - state.focusSession.remainingSeconds / (state.focusSession.minutes * 60)) * 100))));
+const focusQuestTitle = computed(() => state.quests.find(quest => quest.id === state.focusSession.questId)?.title || "Focus session");
 
 function formatDate(key, options = {}) {
   return new Date(`${key}T12:00:00`).toLocaleDateString(undefined, options);
@@ -146,6 +160,61 @@ function questTitle(quest) {
   if (quest.id === "daily-steps") return `👟 Daily ${state.targets.steps.toLocaleString()} Steps`;
   if (quest.id === "water-3l") return `💧 Drink ${formatLiters(state.targets.waterMl)}L Water`;
   return quest.title;
+}
+function focusEligible(quest) {
+  return selectedDate.value === todayKey() && ["dsa-practice", "ai-learning"].includes(quest.id);
+}
+function openFocus(quest) {
+  const session = state.focusSession;
+  if (session.questId !== quest.id || session.remainingSeconds <= 0) {
+    state.focusSession = { questId: quest.id, minutes: 25, remainingSeconds: 1500, endsAt: null, running: false };
+  }
+  focusVisible.value = true;
+  if (state.focusSession.running) runFocusTicker();
+}
+function tickFocus() {
+  const session = state.focusSession;
+  if (!session.running || !session.endsAt) return;
+  session.remainingSeconds = Math.max(0, Math.ceil((session.endsAt - Date.now()) / 1000));
+  if (session.remainingSeconds === 0) {
+    clearInterval(focusInterval);
+    focusInterval = undefined;
+    session.running = false;
+    session.endsAt = null;
+    state.focusHistory.push({ id: `focus-${Date.now()}`, questId: session.questId, minutes: session.minutes, completedAt: new Date().toISOString(), day: todayKey() });
+    notify("Focus session complete. Nice work.");
+  }
+}
+function runFocusTicker() {
+  clearInterval(focusInterval);
+  tickFocus();
+  if (state.focusSession.running) focusInterval = window.setInterval(tickFocus, 500);
+}
+function toggleFocusTimer() {
+  const session = state.focusSession;
+  if (session.running) {
+    tickFocus();
+    if (!session.running) return;
+    session.running = false;
+    session.endsAt = null;
+    clearInterval(focusInterval);
+    focusInterval = undefined;
+    return;
+  }
+  if (session.remainingSeconds <= 0) return;
+  session.endsAt = Date.now() + session.remainingSeconds * 1000;
+  session.running = true;
+  runFocusTicker();
+}
+function setFocusDuration(minutes) {
+  if (state.focusSession.running) return;
+  state.focusSession.minutes = minutes;
+  state.focusSession.remainingSeconds = minutes * 60;
+  state.focusSession.endsAt = null;
+}
+function exitFocus() {
+  if (state.focusSession.running) toggleFocusTimer();
+  focusVisible.value = false;
 }
 function selectDay(key) {
   if (key && key <= todayKey()) selectedDate.value = key;
@@ -189,10 +258,11 @@ function handleNewDay() {
 }
 onMounted(() => {
   midnightCheck = window.setInterval(handleNewDay, 30_000);
+  if (state.focusSession.running) runFocusTicker();
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) introVisible.value = false;
   else introTimeout = window.setTimeout(() => { introVisible.value = false; }, 3000);
 });
-onUnmounted(() => { clearInterval(midnightCheck); clearTimeout(toastTimeout); clearTimeout(introTimeout); });
+onUnmounted(() => { clearInterval(midnightCheck); clearInterval(focusInterval); clearTimeout(toastTimeout); clearTimeout(introTimeout); });
 </script>
 
 <template>
@@ -249,7 +319,7 @@ onUnmounted(() => { clearInterval(midnightCheck); clearTimeout(toastTimeout); cl
             <article v-for="quest in mainQuests" :key="quest.id" :class="['quest-card', { completed: completions[quest.id] }]">
               <button class="quest-check" :disabled="selectedDate > todayKey()" :aria-label="completions[quest.id] ? 'Mark incomplete' : 'Complete quest'" @click="toggleQuest(quest)">{{ completions[quest.id] ? '✓' : '' }}</button>
               <div class="quest-text"><span class="quest-category">{{ quest.category }}</span><strong>{{ questTitle(quest) }}</strong><small>◷ &nbsp;Whenever works for you</small></div>
-              <span class="quest-reward">✦ &nbsp;{{ quest.xp }} XP</span><button class="delete-button" aria-label="Delete quest" title="Delete quest" @click="deleteQuest(quest)">×</button>
+              <span class="quest-reward">✦ &nbsp;{{ quest.xp }} XP</span><button v-if="focusEligible(quest)" class="focus-button" @click="openFocus(quest)">{{ state.focusSession.questId === quest.id && (state.focusSession.running || state.focusSession.remainingSeconds < state.focusSession.minutes * 60) ? 'Resume' : 'Focus' }} <span>↗</span></button><button class="delete-button" aria-label="Delete quest" title="Delete quest" @click="deleteQuest(quest)">×</button>
             </article>
             <div v-if="!mainQuests.length" class="empty-state">Your main quest list is clear. Add a small goal when you’re ready.</div>
           </div>
@@ -281,6 +351,9 @@ onUnmounted(() => { clearInterval(midnightCheck); clearTimeout(toastTimeout); cl
       <footer class="page-footer"><span>✳</span> Your pace is the right pace. Keep going.</footer>
     </main>
     <div v-if="toast" class="toast-message" role="status">{{ toast }}</div>
+    <Transition name="focus-enter"><div v-if="focusVisible" class="focus-overlay" role="dialog" aria-modal="true" aria-label="Focus session">
+      <div class="focus-card"><button class="focus-exit" @click="exitFocus">← Exit focus</button><div class="focus-brand"><span>✳</span> DAYNOVA · FOCUS MODE</div><span class="focus-eyebrow">ONE THING AT A TIME</span><h2>{{ focusQuestTitle }}</h2><p>{{ state.focusSession.running ? 'Stay with this moment. You’re doing great.' : state.focusSession.remainingSeconds === 0 ? 'Session complete. Take a breath and enjoy the win.' : 'Choose a session length, then settle in.' }}</p><div class="focus-timer" :style="{ '--focus-progress': `${focusProgress}%` }"><div><strong>{{ focusClock }}</strong><span>{{ state.focusSession.remainingSeconds === 0 ? 'COMPLETE' : state.focusSession.running ? 'FOCUSING' : 'READY' }}</span></div></div><div class="focus-presets" aria-label="Focus duration"><button v-for="minutes in [25, 50]" :key="minutes" :class="{ selected: state.focusSession.minutes === minutes }" :disabled="state.focusSession.running" @click="setFocusDuration(minutes)">{{ minutes }} min</button></div><div class="focus-actions"><button v-if="state.focusSession.remainingSeconds > 0" class="primary-button focus-main-action" @click="toggleFocusTimer">{{ state.focusSession.running ? 'Pause session' : state.focusSession.remainingSeconds < state.focusSession.minutes * 60 ? 'Resume session' : 'Start focus' }}</button><button v-else class="primary-button focus-main-action" @click="exitFocus">Done</button></div><small class="focus-note">Your session is saved on this device. Closing focus pauses the timer.</small></div>
+    </div></Transition>
   </div>
 </template>
 
