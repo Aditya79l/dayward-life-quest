@@ -28,18 +28,19 @@ html, body, #app { max-width: 100%; }
     width: min(100%, 420px);
     margin: 0;
     justify-content: space-around;
-    gap: 10px;
+    gap: 4px;
   }
   .sidebar .nav-item,
   .sidebar .nav-item:not(.active),
   .sidebar .nav-item.active {
     display: flex;
     width: auto;
-    min-width: 112px;
+    min-width: 0;
+    flex: 1 1 0;
     justify-content: center;
     gap: 8px;
-    padding: 9px 14px;
-    font-size: 11px;
+    padding: 9px 7px;
+    font-size: 10px;
   }
   .sidebar .nav-icon { font-size: 16px; }
   .sidebar .nav-count { display: inline; font-size: 10px; }
@@ -177,6 +178,29 @@ html, body, #app { max-width: 100%; }
 .focus-main-action { min-width: 160px; padding: 11px 18px; font-size: 10px; }
 .focus-note { display: block; margin-top: 17px; color: #68788a; font-size: 8px; }
 
+.sync-view { width: min(850px, 100%); margin: 0 auto; }
+.sync-notice { display: flex; align-items: flex-start; gap: 12px; margin: 18px 0 12px; padding: 14px 16px; border-color: #79d9ed30; background: #0b1519c9; }
+.sync-notice > span { color: #9beaf4; }
+.sync-notice p, .sync-panel > p, .sync-footnote { margin: 0; color: #91a0b4; font-size: 10px; line-height: 1.7; }
+.sync-panel { padding: 20px; }
+.sync-panel h3 { margin: 7px 0; color: #edf5ff; font-size: 20px; }
+.sync-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 18px 0 12px; }
+.sync-form label, .sync-join label { display: grid; gap: 6px; color: #b8c7d9; font-size: 10px; }
+.sync-form input, .sync-join input { width: 100%; min-width: 0; padding: 10px 11px; border: 1px solid #ffffff18; border-radius: 8px; outline: 0; background: #07090df2; color: #edf6ff; font: inherit; font-size: 12px; }
+.sync-form input:focus, .sync-join input:focus { border-color: #8ce3ed75; }
+.sync-form .primary-button { align-self: end; justify-self: start; }
+.sync-panel > small { display: block; margin-top: 12px; color: #718198; font-size: 9px; }
+.sync-link { display: inline-block; margin-top: 4px; color: #9beaf4; text-decoration: none; font-size: 10px; }
+.sync-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: 15px; }
+.sync-code-box { margin-top: 18px; padding: 15px; border: 1px solid #79d9ed2b; border-radius: 10px; background: #070b0edb; }
+.sync-code-display { display: block; margin-top: 9px; color: #c8f7fb; font: 600 clamp(13px, 3vw, 19px)/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .06em; overflow-wrap: anywhere; }
+.sync-join, .sync-choice { display: grid; gap: 10px; margin-top: 20px; padding-top: 18px; border-top: 1px solid #ffffff12; }
+.sync-join .subtle-button { justify-self: start; }
+.sync-choice strong { color: #e7f0fb; font-size: 12px; }
+.sync-choice p { margin: -5px 0 0; color: #8797ac; font-size: 9px; }
+.sync-status { min-height: 16px; margin: 12px 2px 5px; color: #a6e8ef; font-size: 10px; }
+.sync-footnote { margin: 7px 2px; font-size: 9px; }
+
 @media (max-width: 600px) {
   .target-panel { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 14px; }
   .target-fields { gap: 8px; }
@@ -194,5 +218,8 @@ html, body, #app { max-width: 100%; }
   .focus-timer { width: 170px; height: 170px; }
   .focus-timer > div { width: 154px; height: 154px; }
   .focus-timer strong { font-size: 34px; }
+  .sync-form { grid-template-columns: minmax(0, 1fr); }
+  .sync-panel { padding: 15px; }
+  .sync-actions > button { max-width: 100%; }
 }
 
