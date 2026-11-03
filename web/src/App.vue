@@ -10,15 +10,15 @@ const legacyQuestIds = new Set(["m1", "m2", "m3", "m4", "s1", "s2"]);
 const makeDefaults = () => ({
   xp: 0,
   quests: [
-    { id: "daily-steps", title: "👟 Daily Steps", category: "MOVE & EXPLORE", xp: 75, side: false },
-    { id: "water-3l", title: "💧 Drink Water", category: "FUEL YOUR BODY", xp: 50, side: false },
-    { id: "dsa-practice", title: "🧩 DSA Practice", category: "SHARPEN YOUR MIND", xp: 100, side: false },
-    { id: "gym-running", title: "🏋️ Gym / Running", category: "BUILD YOUR STRENGTH", xp: 100, side: false },
-    { id: "ai-learning", title: "🤖 AI Learning", category: "FUTURE SKILLS", xp: 75, side: false },
-    { id: "no-sugar", title: "🍬 No Sugar Today", category: "MINDFUL FUEL", xp: 40, side: true },
-    { id: "no-junk", title: "🥗 Skip Junk Food", category: "SMART CHOICES", xp: 40, side: true },
-    { id: "book-reading", title: "📚 Read a Book", category: "LIFELONG LEARNING", xp: 40, side: true },
-    { id: "football", title: "⚽ Play Football", category: "PLAY & RECOVER", xp: 40, side: true },
+    { id: "daily-steps", title: "👟 Daily Steps", category: "MOVE & EXPLORE", xp: 10, side: false },
+    { id: "water-3l", title: "💧 Drink Water", category: "FUEL YOUR BODY", xp: 5, side: false },
+    { id: "dsa-practice", title: "🧩 DSA Practice", category: "SHARPEN YOUR MIND", xp: 10, side: false },
+    { id: "gym-running", title: "🏋️ Gym / Running", category: "BUILD YOUR STRENGTH", xp: 10, side: false },
+    { id: "ai-learning", title: "🤖 AI Learning", category: "FUTURE SKILLS", xp: 10, side: false },
+    { id: "no-sugar", title: "🍬 No Sugar Today", category: "MINDFUL FUEL", xp: 5, side: true },
+    { id: "no-junk", title: "🥗 Skip Junk Food", category: "SMART CHOICES", xp: 5, side: true },
+    { id: "book-reading", title: "📚 Read a Book", category: "LIFELONG LEARNING", xp: 5, side: true },
+    { id: "football", title: "⚽ Play Football", category: "PLAY & RECOVER", xp: 5, side: true },
   ],
   targets: { steps: 10000, waterMl: 3000 },
   focusSession: { questId: null, minutes: 25, remainingSeconds: 1500, endsAt: null, running: false },
@@ -56,7 +56,7 @@ const activeView = ref("today");
 const showQuestForm = ref(false);
 const newTitle = ref("");
 const newSide = ref(false);
-const newXp = ref(50);
+const newXp = ref(10);
 const toast = ref("");
 const introVisible = ref(true);
 const focusVisible = ref(false);
@@ -413,7 +413,7 @@ function addQuest() {
   const title = newTitle.value.trim();
   if (!title) return;
   state.quests.push({ id: `quest-${Date.now()}`, title, category: newSide.value ? "A little extra" : "Your routine", xp: Number(newXp.value), side: newSide.value });
-  newTitle.value = ""; newSide.value = false; newXp.value = 50; showQuestForm.value = false;
+  newTitle.value = ""; newSide.value = false; newXp.value = 10; showQuestForm.value = false;
   notify("Quest added to your log.");
 }
 function deleteQuest(quest) {
@@ -495,7 +495,7 @@ onUnmounted(() => { stopCloudListener?.(); clearTimeout(cloudWriteTimeout); clea
       <section v-if="activeView === 'today'" class="content-grid">
         <div class="primary-column">
           <div class="section-heading"><div><div class="heading-line"><h2>{{ selectedDate === todayKey() ? 'Today’s quests' : 'Quest log' }}</h2><span class="count-chip">{{ completedMain }} / {{ mainQuests.length }} MAIN</span></div><p>Small steps make the biggest stories.</p></div><button class="subtle-button" @click="activeView = 'analytics'">View analytics <span>↗</span></button></div>
-          <div v-if="showQuestForm" class="quest-form glass-panel"><div class="form-heading"><div><small>ADD TO YOUR ADVENTURE</small><h3>Make it a quest.</h3></div><button class="close-button" aria-label="Close" @click="showQuestForm = false">×</button></div><form @submit.prevent="addQuest"><label>Quest name<input v-model="newTitle" maxlength="60" placeholder="e.g. Take a 20 minute walk" required autofocus /></label><div class="form-row"><label>Quest type<select v-model="newSide"><option :value="false">Main quest</option><option :value="true">Side quest</option></select></label><label>XP reward<select v-model="newXp"><option :value="25">25 XP · Easy</option><option :value="50">50 XP · Steady</option><option :value="75">75 XP · Stretch</option></select></label></div><button class="primary-button form-submit">Add to my quest log <span>→</span></button></form></div>
+          <div v-if="showQuestForm" class="quest-form glass-panel"><div class="form-heading"><div><small>ADD TO YOUR ADVENTURE</small><h3>Make it a quest.</h3></div><button class="close-button" aria-label="Close" @click="showQuestForm = false">×</button></div><form @submit.prevent="addQuest"><label>Quest name<input v-model="newTitle" maxlength="60" placeholder="e.g. Take a 20 minute walk" required autofocus /></label><div class="form-row"><label>Quest type<select v-model="newSide"><option :value="false">Main quest</option><option :value="true">Side quest</option></select></label><label>XP reward<select v-model="newXp"><option :value="5">5 XP · Quick win</option><option :value="8">8 XP · Solid effort</option><option :value="10">10 XP · Big effort</option></select></label></div><button class="primary-button form-submit">Add to my quest log <span>→</span></button></form></div>
           <div class="quest-list">
             <article v-for="quest in mainQuests" :key="quest.id" :class="['quest-card', { completed: completions[quest.id] }]">
               <button class="quest-check" :disabled="selectedDate > todayKey()" :aria-label="completions[quest.id] ? 'Mark incomplete' : 'Complete quest'" @click="toggleQuest(quest)">{{ completions[quest.id] ? '✓' : '' }}</button>
