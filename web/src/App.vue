@@ -1,7 +1,10 @@
 <script setup>
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { configureCloudSync, createCloudSync, readCloudSync, subscribeCloudSync, writeCloudSync, signIntoCloudSync } from "./sync.js";
 
 const SAVE_KEY = "dayward-vue-v1";
+const SYNC_CONFIG_KEY = "daynova-firebase-config-v1";
+const SYNC_CODE_KEY = "daynova-sync-code-v1";
 const todayKey = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 const legacyQuestIds = new Set(["m1", "m2", "m3", "m4", "s1", "s2"]);
 const makeDefaults = () => ({
@@ -57,15 +60,39 @@ const newXp = ref(50);
 const toast = ref("");
 const introVisible = ref(true);
 const focusVisible = ref(false);
+const syncConfigDraft = reactive(loadSyncConfig());
+const firebaseConfigured = ref(Boolean(syncConfigDraft.projectId));
+const syncCode = ref(localStorage.getItem(SYNC_CODE_KEY) || "");
+const syncCodeDraft = ref("");
+const syncMessage = ref(firebaseConfigured.value ? "Firebase settings are saved on this device." : "Cloud sync is not configured yet.");
+const syncBusy = ref(false);
+const pendingSyncChoice = ref(null);
 const stepTargetDraft = ref(state.targets.steps);
 const waterTargetDraft = ref(state.targets.waterMl);
 let toastTimeout;
 let midnightCheck;
 let introTimeout;
 let focusInterval;
+let stopCloudListener;
+let cloudWriteTimeout;
+let suppressNextCloudWrite = false;
+let cloudSyncReady = false;
 
 watch(state, value => localStorage.setItem(SAVE_KEY, JSON.stringify(value)), { deep: true });
 watch(focusVisible, visible => { document.body.style.overflow = visible ? "hidden" : ""; }, { flush: "sync" });
+watch(() => syncFingerprint(), () => {
+  if (suppressNextCloudWrite) { suppressNextCloudWrite = false; return; }
+  if (!cloudSyncReady || !syncCode.value) return;
+  clearTimeout(cloudWriteTimeout);
+  cloudWriteTimeout = window.setTimeout(async () => {
+    try {
+      await writeCloudSync(syncCode.value, makeSyncPayload());
+      syncMessage.value = "Synced just now.";
+    } catch (error) {
+      syncMessage.value = syncErrorMessage(error);
+    }
+  }, 700);
+}, { flush: "post" });
 const mainQuests = computed(() => state.quests.filter(quest => !quest.side));
 const sideQuests = computed(() => state.quests.filter(quest => quest.side));
 const completions = computed(() => state.days[selectedDate.value] || {});
@@ -162,6 +189,154 @@ function questTitle(quest) {
   if (quest.id === "water-3l") return `💧 Drink ${formatLiters(state.targets.waterMl)}L Water`;
   return quest.title;
 }
+function loadSyncConfig() {
+  try { return { apiKey: "", authDomain: "", projectId: "", appId: "", ...JSON.parse(localStorage.getItem(SYNC_CONFIG_KEY) || "{}") }; }
+  catch { return { apiKey: "", authDomain: "", projectId: "", appId: "" }; }
+}
+function normalizeCloudCode(value) {
+  const code = String(value || "").replace(/[^a-f\d]/gi, "").toLowerCase();
+  return /^[a-f\d]{32}$/.test(code) ? code : "";
+}
+function displayCloudCode(value) {
+  return value.match(/.{1,4}/g)?.join("-") || value;
+}
+function makeSyncPayload() {
+  const payload = JSON.parse(JSON.stringify(state));
+  if (payload.focusSession?.running && payload.focusSession.endsAt) {
+    payload.focusSession.remainingSeconds = Math.max(0, Math.ceil((payload.focusSession.endsAt - Date.now()) / 1000));
+  }
+  return payload;
+}
+function syncFingerprint() {
+  const payload = JSON.parse(JSON.stringify(state));
+  if (payload.focusSession) delete payload.focusSession.remainingSeconds;
+  return JSON.stringify(payload);
+}
+function syncErrorMessage(error) {
+  if (error?.code === "auth/operation-not-allowed") return "Enable Anonymous sign-in in Firebase Authentication, then try again.";
+  if (error?.code === "permission-denied" || error?.code === "firestore/permission-denied") return "Firestore denied access. Check that the Daynova rules are published.";
+  if (error?.code === "unavailable" || error?.code === "auth/network-request-failed") return "Cloud sync is offline. Your changes are still saved on this device.";
+  return error?.message || "Cloud sync could not connect. Check your Firebase setup.";
+}
+function normalizeRemoteState(remote) {
+  const defaults = makeDefaults();
+  if (!remote || typeof remote !== "object" || !Array.isArray(remote.quests) || !remote.days || typeof remote.xp !== "number") throw new Error("That sync code has no valid Daynova data.");
+  return {
+    ...defaults,
+    ...remote,
+    targets: { ...defaults.targets, ...remote.targets },
+    focusSession: { ...defaults.focusSession, ...remote.focusSession },
+    focusHistory: Array.isArray(remote.focusHistory) ? remote.focusHistory : [],
+    quests: remote.quests,
+    days: remote.days,
+    dayXp: remote.dayXp && typeof remote.dayXp === "object" ? remote.dayXp : {},
+  };
+}
+function applyRemoteState(remote) {
+  const normalized = normalizeRemoteState(remote);
+  if (JSON.stringify(state) === JSON.stringify(normalized)) return;
+  suppressNextCloudWrite = syncFingerprint() !== JSON.stringify({ ...normalized, focusSession: { ...normalized.focusSession, remainingSeconds: state.focusSession.remainingSeconds } });
+  Object.assign(state, normalized);
+  stepTargetDraft.value = state.targets.steps;
+  waterTargetDraft.value = state.targets.waterMl;
+}
+async function configureSync() {
+  if (!["apiKey", "authDomain", "projectId", "appId"].every(key => syncConfigDraft[key].trim())) {
+    syncMessage.value = "Enter the API key, auth domain, project ID, and app ID from your Firebase web app.";
+    return;
+  }
+  try {
+    syncBusy.value = true;
+    const config = Object.fromEntries(["apiKey", "authDomain", "projectId", "appId"].map(key => [key, syncConfigDraft[key].trim()]));
+    configureCloudSync(config);
+    localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(config));
+    firebaseConfigured.value = true;
+    syncMessage.value = "Firebase project saved. Anonymous sign-in and Firestore rules are the next setup steps.";
+  } catch (error) { syncMessage.value = syncErrorMessage(error); }
+  finally { syncBusy.value = false; }
+}
+async function ensureCloudReady() {
+  if (!firebaseConfigured.value) throw new Error("Configure your Firebase web app first.");
+  configureCloudSync(syncConfigDraft);
+  await signIntoCloudSync();
+}
+function bindCloudCode(code) {
+  stopCloudListener?.();
+  syncCode.value = code;
+  localStorage.setItem(SYNC_CODE_KEY, code);
+  cloudSyncReady = true;
+  stopCloudListener = subscribeCloudSync(code, remote => {
+    if (!remote) return;
+    try { applyRemoteState(remote); syncMessage.value = "Synced across your devices."; }
+    catch (error) { syncMessage.value = syncErrorMessage(error); }
+  }, error => { syncMessage.value = syncErrorMessage(error); });
+  syncMessage.value = "Connected. Changes sync automatically when you’re online.";
+}
+function makeSyncCode() {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
+}
+async function createSyncCode() {
+  try {
+    syncBusy.value = true;
+    syncMessage.value = "Creating your private sync space…";
+    await ensureCloudReady();
+    const code = makeSyncCode();
+    await createCloudSync(code, makeSyncPayload());
+    bindCloudCode(code);
+    syncMessage.value = "Sync is on. Copy this code to connect your other device.";
+  } catch (error) { syncMessage.value = syncErrorMessage(error); }
+  finally { syncBusy.value = false; }
+}
+async function findSyncCode() {
+  const code = normalizeCloudCode(syncCodeDraft.value);
+  if (!code) { syncMessage.value = "Enter the complete sync code from your other device."; return; }
+  try {
+    syncBusy.value = true;
+    await ensureCloudReady();
+    const remote = await readCloudSync(code);
+    if (!remote) { syncMessage.value = "No Daynova data was found for that code."; return; }
+    pendingSyncChoice.value = { code, state: remote };
+    syncMessage.value = "Choose which device’s data should be kept.";
+  } catch (error) { syncMessage.value = syncErrorMessage(error); }
+  finally { syncBusy.value = false; }
+}
+function useCloudCopy() {
+  if (!pendingSyncChoice.value) return;
+  try {
+    applyRemoteState(pendingSyncChoice.value.state);
+    bindCloudCode(pendingSyncChoice.value.code);
+    pendingSyncChoice.value = null;
+    syncCodeDraft.value = "";
+  } catch (error) { syncMessage.value = syncErrorMessage(error); }
+}
+async function replaceCloudCopy() {
+  if (!pendingSyncChoice.value) return;
+  try {
+    syncBusy.value = true;
+    await writeCloudSync(pendingSyncChoice.value.code, makeSyncPayload());
+    bindCloudCode(pendingSyncChoice.value.code);
+    pendingSyncChoice.value = null;
+    syncCodeDraft.value = "";
+    syncMessage.value = "This device’s Daynova data is now synced.";
+  } catch (error) { syncMessage.value = syncErrorMessage(error); }
+  finally { syncBusy.value = false; }
+}
+function unlinkSync() {
+  stopCloudListener?.();
+  stopCloudListener = undefined;
+  clearTimeout(cloudWriteTimeout);
+  cloudSyncReady = false;
+  syncCode.value = "";
+  localStorage.removeItem(SYNC_CODE_KEY);
+  syncMessage.value = "This device is unlinked. Its local data is unchanged.";
+}
+async function copySyncCode() {
+  if (!syncCode.value) return;
+  try { await navigator.clipboard.writeText(displayCloudCode(syncCode.value)); syncMessage.value = "Sync code copied."; }
+  catch { syncMessage.value = `Copy this code: ${displayCloudCode(syncCode.value)}`; }
+}
 function focusEligible(quest) {
   return selectedDate.value === todayKey() && ["dsa-practice", "ai-learning"].includes(quest.id);
 }
@@ -257,13 +432,17 @@ function handleNewDay() {
   if (selectedDate.value !== today) selectedDate.value = today;
   if (calendarMonth.value.getMonth() !== new Date().getMonth() || calendarMonth.value.getFullYear() !== new Date().getFullYear()) calendarMonth.value = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 }
-onMounted(() => {
+onMounted(async () => {
   midnightCheck = window.setInterval(handleNewDay, 30_000);
   if (state.focusSession.running) runFocusTicker();
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) introVisible.value = false;
   else introTimeout = window.setTimeout(() => { introVisible.value = false; }, 3000);
+  if (firebaseConfigured.value && syncCode.value) {
+    try { configureCloudSync(syncConfigDraft); await signIntoCloudSync(); bindCloudCode(syncCode.value); }
+    catch (error) { syncMessage.value = syncErrorMessage(error); }
+  }
 });
-onUnmounted(() => { clearInterval(midnightCheck); clearInterval(focusInterval); clearTimeout(toastTimeout); clearTimeout(introTimeout); document.body.style.overflow = ""; });
+onUnmounted(() => { stopCloudListener?.(); clearTimeout(cloudWriteTimeout); clearInterval(midnightCheck); clearInterval(focusInterval); clearTimeout(toastTimeout); clearTimeout(introTimeout); document.body.style.overflow = ""; });
 </script>
 
 <template>
@@ -287,6 +466,7 @@ onUnmounted(() => { clearInterval(midnightCheck); clearInterval(focusInterval); 
       <nav class="nav-stack" aria-label="Main navigation">
         <button :class="['nav-item', { active: activeView === 'today' }]" @click="activeView = 'today'"><span class="nav-icon">◈</span> Today <span class="nav-count">{{ mainQuests.length - completedMain }}</span></button>
         <button :class="['nav-item', { active: activeView === 'analytics' }]" @click="activeView = 'analytics'"><span class="nav-icon">⌁</span> Analytics</button>
+        <button :class="['nav-item', { active: activeView === 'sync' }]" @click="activeView = 'sync'"><span class="nav-icon">⇄</span> Sync</button>
       </nav>
       <div class="sidebar-bottom">
         <div class="rank-mini"><div class="rank-mini-top"><span>ADVENTURE RANK</span><span>✦</span></div><strong>{{ adventureRank }}</strong><div class="rank-xp">{{ state.xp }} XP <span>· {{ xpToNext }} to next rank</span></div><div class="rank-track"><i :style="{ width: `${(state.xp % 300) / 3}%` }"></i></div></div>
@@ -295,7 +475,7 @@ onUnmounted(() => { clearInterval(midnightCheck); clearInterval(focusInterval); 
     </aside>
 
     <main class="main-content">
-      <header class="topbar"><div class="crumb">YOUR WORLD <span>/</span> <strong>{{ activeView === 'today' ? 'TODAY' : 'ANALYTICS' }}</strong></div><div class="topbar-right"><div class="streak-pill"><span class="streak-flame">✦</span><strong>{{ currentStreak }}</strong><span>day streak</span></div><div class="top-avatar">A</div></div></header>
+      <header class="topbar"><div class="crumb">YOUR WORLD <span>/</span> <strong>{{ activeView === 'today' ? 'TODAY' : activeView === 'analytics' ? 'ANALYTICS' : 'SYNC' }}</strong></div><div class="topbar-right"><div class="streak-pill"><span class="streak-flame">✦</span><strong>{{ currentStreak }}</strong><span>day streak</span></div><div class="top-avatar">A</div></div></header>
 
       <section class="welcome-row"><div><p class="eyebrow">{{ dateHeading.toUpperCase() }}</p><h1>Hi, <em>Aditya.</em></h1><p class="welcome-sub">One small win at a time. Your next chapter is yours to write.</p></div><button class="primary-button" @click="showQuestForm = !showQuestForm"><span>＋</span> New quest</button></section>
 
@@ -342,12 +522,28 @@ onUnmounted(() => { clearInterval(midnightCheck); clearInterval(focusInterval); 
         </aside>
       </section>
 
-      <section v-else class="analytics-view">
+      <section v-else-if="activeView === 'analytics'" class="analytics-view">
         <div class="section-heading"><div><div class="heading-line"><h2>Your analytics</h2><span class="count-chip">LAST 7 DAYS</span></div><p>A clear view of your consistency and progress.</p></div><div class="analytics-actions"><button class="subtle-button export-button" @click="exportBackup">↓ Export backup</button><button class="subtle-button" @click="activeView = 'today'">← Back to today</button></div></div>
         <section class="glass-panel weekly-recap"><div class="recap-heading"><div><span class="card-label">YOUR LAST SEVEN DAYS</span><h3>Weekly recap</h3></div><span class="recap-spark">✧</span></div><div class="recap-stats"><div><small>QUESTS COMPLETED</small><strong>{{ weeklyDone }}</strong><span>this week</span></div><div><small>XP EARNED</small><strong>{{ weeklyXp }}</strong><span>this week</span></div><div><small>STREAKS</small><strong>{{ currentStreak }} <i>current</i></strong><span>{{ bestStreak }} day personal best</span></div></div><div class="weekly-wins"><div class="wins-label">RECENT QUEST WINS</div><div v-if="weeklyCompletions.length" class="wins-list"><article v-for="win in weeklyCompletions" :key="win.id"><span>✦</span><strong>{{ win.title }}</strong><small>{{ win.short }} · {{ formatDate(win.key, { month: 'short', day: 'numeric' }) }}</small></article></div><p v-else class="wins-empty">Your wins from this week will show up here.</p></div></section>
         <div class="analytics-cards"><article class="glass-panel metric-card"><span class="metric-icon cyan">✦</span><small>TOTAL XP</small><strong>{{ state.xp }}</strong><span class="metric-note">Adventure rank progress</span></article><article class="glass-panel metric-card"><span class="metric-icon blue">♨</span><small>CURRENT STREAK</small><strong>{{ currentStreak }} <i>days</i></strong><span class="metric-note">Best streak: {{ bestStreak }} days</span></article><article class="glass-panel metric-card"><span class="metric-icon violet">◈</span><small>QUESTS COMPLETED</small><strong>{{ totalCompleted }}</strong><span class="metric-note">Across {{ activeDays }} active days</span></article><article class="glass-panel metric-card"><span class="metric-icon teal">⌁</span><small>WEEKLY COMPLETION</small><strong>{{ weeklyRate }}<i>%</i></strong><span class="metric-note">{{ weeklyDone }} wins this week</span></article></div>
         <div class="analytics-grid"><section class="glass-panel chart-panel"><div class="card-top"><div><span class="card-label">YOUR RHYTHM</span><h3>XP earned this week</h3></div><span class="chart-total">{{ weeklyXp }} <small>XP</small></span></div><div class="chart"><div v-for="day in lastSeven" :key="day.key" class="chart-column"><span class="bar-value">{{ day.xp || '' }}</span><div class="bar-rail"><i :style="{ height: `${Math.max(day.xp ? 9 : 2, day.xp / maxBar * 100)}%` }"></i></div><small>{{ day.short }}</small></div></div></section>
           <section class="glass-panel insight-panel"><span class="card-label">A NOTE FOR YOU</span><div class="insight-orb">✧</div><h3>{{ currentStreak ? 'You’re finding your rhythm.' : 'Your next streak starts today.' }}</h3><p>{{ totalCompleted ? `You’ve collected ${totalCompleted} small wins so far. Keep the pace that feels right.` : 'Every adventure starts with a first step. Pick one small quest and begin.' }}</p><button class="text-button" @click="activeView = 'today'">See today’s quests ↗</button></section></div>
+      </section>
+      <section v-else class="sync-view">
+        <div class="section-heading"><div><div class="heading-line"><h2>Sync your journey</h2><span class="count-chip">PRIVATE CODE</span></div><p>Keep Daynova up to date on your phone and laptop.</p></div><button class="subtle-button" @click="activeView = 'today'">← Back to today</button></div>
+        <div class="sync-notice glass-panel"><span>✦</span><p>Your quest history will be stored in your Firebase project after you connect. Anyone with your 32-character sync code can read and replace that shared data, so keep the code private.</p></div>
+        <section v-if="!firebaseConfigured" class="glass-panel sync-panel">
+          <span class="card-label">FREE FIREBASE SETUP</span><h3>Connect a cloud project</h3><p>Create a Firebase project on the free Spark plan, add a Web app, enable Firestore Database and Anonymous Authentication, then paste its web app settings here. No Daynova account or payment method is needed.</p>
+          <form class="sync-form" @submit.prevent="configureSync"><label>API key<input v-model.trim="syncConfigDraft.apiKey" autocomplete="off" required /></label><label>Auth domain<input v-model.trim="syncConfigDraft.authDomain" placeholder="your-project.firebaseapp.com" autocomplete="off" required /></label><label>Project ID<input v-model.trim="syncConfigDraft.projectId" autocomplete="off" required /></label><label>App ID<input v-model.trim="syncConfigDraft.appId" autocomplete="off" required /></label><button class="primary-button" :disabled="syncBusy">{{ syncBusy ? 'Saving…' : 'Save Firebase settings' }}</button></form>
+          <a class="text-button sync-link" href="https://console.firebase.google.com/" target="_blank" rel="noreferrer">Open Firebase Console ↗</a><small>Use the Web app config fields only. Never paste a service account key.</small>
+        </section>
+        <section v-else class="glass-panel sync-panel"><span class="card-label">CONNECTED PROJECT</span><h3>{{ syncConfigDraft.projectId }}</h3><p>Your project settings are saved only in this browser. Enter the same settings on your other device.</p>
+          <div v-if="syncCode" class="sync-code-box"><span class="card-label">YOUR PRIVATE SYNC CODE</span><strong class="sync-code-display">{{ displayCloudCode(syncCode) }}</strong><div class="sync-actions"><button class="primary-button" @click="copySyncCode">Copy code</button><button class="subtle-button" @click="unlinkSync">Unlink this device</button></div></div>
+          <div v-else class="sync-actions"><button class="primary-button" :disabled="syncBusy" @click="createSyncCode">{{ syncBusy ? 'Connecting…' : 'Create new sync code' }}</button></div>
+          <div v-if="!syncCode" class="sync-join"><label>Have a code from your other device?<input v-model="syncCodeDraft" placeholder="xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx" autocomplete="off" /></label><button class="subtle-button" :disabled="syncBusy" @click="findSyncCode">{{ syncBusy ? 'Checking…' : 'Connect with code' }}</button></div>
+          <div v-if="pendingSyncChoice" class="sync-choice"><strong>Choose which data to keep</strong><p>This choice replaces the full Daynova save on one side.</p><div class="sync-actions"><button class="primary-button" @click="useCloudCopy">Use cloud data on this device</button><button class="subtle-button" :disabled="syncBusy" @click="replaceCloudCopy">Replace cloud data with this device</button><button class="text-button" @click="pendingSyncChoice = null">Cancel</button></div></div>
+        </section>
+        <p class="sync-status" role="status">{{ syncMessage }}</p><p class="sync-footnote">Your app continues saving locally if the internet is unavailable. When both devices reconnect, the most recent save becomes the shared copy. For setup, publish the Firestore rules included in the project README.</p>
       </section>
       <footer class="page-footer"><span>✳</span> Your pace is the right pace. Keep going.</footer>
     </main>
